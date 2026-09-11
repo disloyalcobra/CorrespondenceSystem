@@ -1,0 +1,148 @@
+// ==========================================
+// CATÁLOGOS Y CONFIGURACIÓN
+// ==========================================
+
+Table roles {
+  id int [pk, increment]
+  nombre varchar 
+}
+
+Table departamentos {
+  id int [pk, increment]
+  nombre varchar
+  tipo varchar
+}
+
+Table tipos_documento {
+  id int [pk, increment]
+  nombre varchar 
+}
+
+Table estados {
+  id int [pk, increment]
+  nombre varchar 
+  orden int 
+}
+
+// ==========================================
+// USUARIOS Y SEGURIDAD
+// ==========================================
+
+Table usuarios {
+  id int [pk, increment]
+  nombre varchar
+  email varchar
+  password_hash varchar
+  rol_id int
+  departamento_id int
+  activo boolean
+}
+
+// ==========================================
+// NÚCLEO: OFICIOS
+// ==========================================
+
+Table oficios {
+  id int [pk, increment]
+  folio varchar 
+  tipo_documento_id int
+  objeto text 
+  asunto varchar
+  destinatario varchar [note: 'Solo texto para uso en membretes/documentos (externo). El enrutamiento real usa departamento_destino_inicial_id']
+  fecha_documento date
+  fecha_recepcion datetime
+  // fecha_turno ELIMINADA: Toda la trazabilidad de tiempos de turno se maneja en oficio_turnos
+  termino date 
+  remitente_usuario_id int
+  origen_usuario_id int
+  departamento_destino_inicial_id int [note: 'Define si el oficio va a Protocolos, 18 Ote, etc. desde su creación']
+  estado_id int
+  // pdf_url ELIMINADO: Movido a la tabla polimórfica ADJUNTOS
+  creado_en datetime
+}
+
+// ==========================================
+// GESTIÓN DE ARCHIVOS (NUEVO)
+// ==========================================
+
+Table adjuntos {
+  id int [pk, increment]
+  entidad_tipo varchar [note: 'Ej. "OFICIO" o "SEGUIMIENTO"']
+  entidad_id int [note: 'El ID del oficio o del registro de seguimiento al que pertenece']
+  nombre_archivo varchar
+  archivo_url varchar
+  creado_en datetime
+  
+  Note: 'Tabla polimórfica para soportar múltiples archivos por oficio o por respuesta'
+}
+
+// ==========================================
+// SEGUIMIENTO Y ENRUTAMIENTO (HISTORIAL)
+// ==========================================
+
+Table oficio_turnos {
+  id int [pk, increment]
+  oficio_id int
+  departamento_id int
+  turnado_por_usuario_id int
+  turnado_en datetime
+  recibido_en datetime
+}
+
+Table oficio_seguimiento {
+  id int [pk, increment]
+  oficio_id int
+  usuario_id int
+  tipo varchar 
+  contenido text
+  // pdf_url ELIMINADO: Los adjuntos de respuestas van en la tabla ADJUNTOS
+  creado_en datetime
+}
+
+Table oficio_lecturas {
+  id int [pk, increment]
+  oficio_id int
+  usuario_id int
+  leido_en datetime 
+}
+
+// ==========================================
+// AUDITORÍA
+// ==========================================
+
+Table auditoria {
+  id int [pk, increment]
+  usuario_id int
+  accion varchar
+  entidad varchar
+  entidad_id int
+  detalle text
+  creado_en datetime
+}
+
+// ==========================================
+// RELACIONES (FOREIGN KEYS)
+// ==========================================
+
+Ref: usuarios.rol_id > roles.id
+Ref: usuarios.departamento_id > departamentos.id
+
+Ref: oficios.tipo_documento_id > tipos_documento.id
+Ref: oficios.estado_id > estados.id
+Ref: oficios.remitente_usuario_id > usuarios.id
+Ref: oficios.origen_usuario_id > usuarios.id
+Ref: oficios.departamento_destino_inicial_id > departamentos.id // NUEVA RELACIÓN
+
+Ref: oficio_turnos.oficio_id > oficios.id
+Ref: oficio_turnos.departamento_id > departamentos.id
+Ref: oficio_turnos.turnado_por_usuario_id > usuarios.id
+
+Ref: oficio_seguimiento.oficio_id > oficios.id
+Ref: oficio_seguimiento.usuario_id > usuarios.id
+
+Ref: oficio_lecturas.oficio_id > oficios.id
+Ref: oficio_lecturas.usuario_id > usuarios.id
+
+Ref: auditoria.usuario_id > usuarios.id
+
+Ref: "estados"."id" ?<? "estados"."nombre"
