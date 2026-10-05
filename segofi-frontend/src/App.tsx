@@ -19,8 +19,6 @@ import Enviados from "./User/Enviados/Enviados";
 import DetalleOficio from "./User/VerOficios/DetalleOficio";
 import Administracion from "./User/Administracion/Administracion";
 
-const ROLES_ADMIN = ["Administrador", "Directora"] as const;
-
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -32,11 +30,11 @@ export default function App() {
           <Route path="/recuperar-password" element={<ForgotPassword />} />
 
           {/* Requiere sesión iniciada */}
-          <Route element={<RoleGuard />}>
+          <Route element={<RoleGuard allowedRoles={[1, 2, 3, 4]} />}>
             <Route element={<Sidebar />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              {/* Requiere además rol Administrador o Directora */}
-              <Route element={<RoleGuard rolesPermitidos={[...ROLES_ADMIN]} />}>
+              {/* Requiere además rol Administrador o Directora (2, 3) */}
+              <Route element={<RoleGuard allowedRoles={[2, 3]} />}>
                 <Route path="/crear-oficio" element={<NuevoDocumento />} />
                 <Route path="/crear-oficio/:tipo" element={<Documents />} />
                 <Route path="/departamentos" element={<Departamentos />} />

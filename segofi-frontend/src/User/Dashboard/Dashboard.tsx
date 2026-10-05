@@ -13,19 +13,17 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useAuth } from "../../Guards/useAuth";
-import type { Rol } from "../../Guards/authTypes";
 import Card from "../../components/Card";
 import BarChart from "../../components/BarChart";
 import StatCard from "../../components/StatCard";
-import { OFICIOS_DEMO } from "../../Data/oficio";
+import { useOficios } from "../../Data/oficiosStore";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 import { PERSONAS_DEMO } from "../../Data/personas";
 import { NOTIFICACIONES } from "../../Data/notificaciones";
 import { oficiosVisibles, notificacionesVisibles, tieneAccesoTotal } from "../../Guards/alcance";
 
-const ADMIN_ROLES: Rol[] = ["Administrador", "Directora"];
+const ADMIN_ROLES: number[] = [2, 3];
 
-//  5 accesos rápidos
 const ACCESOS = [
   {
     to: "/crear-oficio",
@@ -50,12 +48,13 @@ const ACCESOS = [
 ];
 
 const ESTADOS_ORDEN = [
-  "Recibido",
-  "Turnado",
-  "En seguimiento",
-  "Respondido",
-  "Cerrado",
-] as const;
+  { id: 1, label: "Recibido" },
+  { id: 3, label: "Turnado" },
+  { id: 2, label: "En seguimiento" },
+  { id: 4, label: "Respondido" },
+  { id: 5, label: "Cerrado" },
+];
+
 const COLORES_ESTADO = [
   "bg-blue-500",
   "bg-dorado",
@@ -66,31 +65,32 @@ const COLORES_ESTADO = [
 
 export default function Dashboard() {
   const { usuario } = useAuth();
+  const oficiosStore = useOficios();
 
   const accesos = ACCESOS.filter(
     (a) =>
       !a.rolesPermitidos ||
-      (usuario && a.rolesPermitidos.includes(usuario.rol)),
+      (usuario && a.rolesPermitidos.includes(usuario.rol_id)),
   );
 
   const esAdmin = tieneAccesoTotal(usuario);
 
-  const misOficios = oficiosVisibles(usuario, OFICIOS_DEMO);
+  const misOficios = oficiosVisibles(usuario, oficiosStore);
   const misNotificaciones = notificacionesVisibles(usuario, NOTIFICACIONES);
 
   const conteos = ESTADOS_ORDEN.map((estado, i) => ({
-    label: estado,
-    value: misOficios.filter((o) => o.estado === estado).length,
+    label: estado.label,
+    value: misOficios.filter((o) => o.estado_id === estado.id).length,
     color: COLORES_ESTADO[i],
   }));
 
   const pendientes = misOficios.filter((o) =>
-    ["Recibido", "Turnado", "En seguimiento"].includes(o.estado),
+    [1, 3, 2].includes(o.estado_id),
   ).length;
   const respondidos = misOficios.filter(
-    (o) => o.estado === "Respondido",
+    (o) => o.estado_id === 4,
   ).length;
-  const cerrados = misOficios.filter((o) => o.estado === "Cerrado").length;
+  const cerrados = misOficios.filter((o) => o.estado_id === 5).length;
   const porcentajeCerrados =
     misOficios.length > 0
       ? Math.round((cerrados / misOficios.length) * 100)
@@ -110,10 +110,11 @@ export default function Dashboard() {
     month: "long",
     day: "numeric",
   });
+  
+  const deptoName = DEPARTAMENTOS_DEMO.find(d => d.id === usuario?.departamento_id)?.nombre || "Desconocido";
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Banner de bienvenida (SistemaCorrespondencia) */}
       <div className="segofi-banner rounded-xl p-7 flex flex-wrap gap-4 items-center justify-between shadow-sm">
         <div className="max-w-[700px]">
           <div className="flex items-center gap-3 mb-1.5">
@@ -128,7 +129,7 @@ export default function Dashboard() {
             Bienvenido, {usuario?.nombre.split(" ")[0]}
           </h1>
           <p className="text-base text-slate-500">
-            Sistema de Gestión de Correspondencia y Oficios • {usuario?.dependencia}
+            Sistema de Gestión de Correspondencia y Oficios • {deptoName}
           </p>
         </div>
 
@@ -154,7 +155,7 @@ export default function Dashboard() {
 
       <Card
         title={
-          esAdmin ? "Resumen del sistema" : `Resumen de ${usuario?.dependencia}`
+          esAdmin ? "Resumen del sistema" : `Resumen de ${deptoName}`
         }
         bodyClassName="p-5"
       >

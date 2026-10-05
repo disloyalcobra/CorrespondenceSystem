@@ -27,14 +27,16 @@ export default function SeguimientoPersonas() {
   const personas = useMemo<Persona[]>(() => {
     const mapa = new Map<string, AccionPersona[]>();
     for (const oficio of visibles) {
+      if (!oficio.seguimiento) continue;
       for (const ev of oficio.seguimiento) {
-        const lista = mapa.get(ev.autor) ?? [];
+        const autorNombre = `Usuario ID: ${ev.usuario_id}`;
+        const lista = mapa.get(autorNombre) ?? [];
         lista.push({
-          oficio: oficio.numero,
-          accion: ev.accion,
-          fecha: ev.fecha,
+          oficio: oficio.folio,
+          accion: ev.contenido,
+          fecha: ev.creado_en,
         });
-        mapa.set(ev.autor, lista);
+        mapa.set(autorNombre, lista);
       }
     }
     return Array.from(mapa.entries())
@@ -117,6 +119,7 @@ export default function SeguimientoPersonas() {
               </div>
             );
           })}
+          {personas.length === 0 && <p className="text-sm text-texto-secundario">No hay acciones registradas.</p>}
         </div>
       </Card>
     </div>

@@ -9,12 +9,13 @@ import {
 } from "../../Data/notificaciones";
 import { useAuth } from "../../Guards/useAuth";
 import { notificacionesVisibles, tieneAccesoTotal } from "../../Guards/alcance";
+import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 
 type Tab = "Todos" | TipoNotificacion;
 
 const TABS: Tab[] = ["Todos", "Recibidos", "Seguimiento", "Urgentes"];
 
-const TONO: Record<TipoNotificacion, string> = {
+const TONO: Record<string, string> = {
   Recibidos: "bg-blue-100 text-blue-600",
   Seguimiento: "bg-amber-100 text-amber-600",
   Urgentes: "bg-red-100 text-red-600",
@@ -47,7 +48,7 @@ export default function Notifications() {
         title="Notificaciones"
         description={
           noLeidas > 0
-            ? `Tienes ${noLeidas} sin leer${tieneAccesoTotal(usuario) ? "" : ` de ${usuario?.dependencia}`}`
+            ? `Tienes ${noLeidas} sin leer${tieneAccesoTotal(usuario) ? "" : ` de ${DEPARTAMENTOS_DEMO.find(d => d.id === usuario?.departamento_id)?.nombre}`}`
             : "Estás al día"
         }
         action={
@@ -118,7 +119,7 @@ export default function Notifications() {
                     }`}
                   >
                     <span
-                      className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center ${TONO[n.tipo]}`}
+                      className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center ${TONO[n.tipo as string] || "bg-gray-100 text-gray-600"}`}
                     >
                       <Icono size={18} />
                     </span>

@@ -1,12 +1,13 @@
 import { createContext } from "react";
 
-export type Rol = "Usuario" | "Administrador" | "Directora" | "JefeDepartamento";
-
 export interface Usuario {
+  id: number;
   nombre: string;
-  cargo: string;
-  dependencia: string;
-  rol: Rol;
+  email: string;
+  password_hash: string;
+  rol_id: number;
+  departamento_id: number;
+  activo: boolean;
 }
 
 export interface AuthContextValue {

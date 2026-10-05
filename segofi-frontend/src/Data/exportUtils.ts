@@ -7,6 +7,16 @@ import {
   etiquetaTipo,
   formatoFecha,
 } from "./analisisOficios";
+import { DEPARTAMENTOS_DEMO } from "./departamentos";
+
+const ESTADO_MAP: Record<number, any> = {
+  1: "Recibido",
+  2: "En seguimiento",
+  3: "Turnado",
+  4: "Respondido",
+  5: "Cerrado",
+  6: "Enviado",
+};
 
 export async function exportarReporteExcel(
   filas: EvaluacionOficio[],
@@ -82,9 +92,9 @@ export async function exportarReporteExcel(
   // Datos
   filas.forEach((r) => {
     wsDetalle.addRow({
-      folio: r.oficio.numero, // Folio como texto explícito
+      folio: r.oficio.folio,
       asunto: r.oficio.asunto,
-      departamento: r.oficio.departamento,
+      departamento: DEPARTAMENTOS_DEMO.find(d => d.id === r.oficio.departamento_destino_inicial_id)?.nombre || "",
       tipo: etiquetaTipo(r.tipo),
       recepcion: r.recepcion ? new Date(r.recepcion) : null,
       termino: r.termino ? new Date(r.termino) : null,
@@ -176,9 +186,9 @@ export function exportarReportePdf(
   ]];
 
   const body = filas.map((r) => [
-    r.oficio.numero,
+    r.oficio.folio,
     r.oficio.asunto,
-    r.oficio.departamento,
+    DEPARTAMENTOS_DEMO.find(d => d.id === r.oficio.departamento_destino_inicial_id)?.nombre || "",
     etiquetaTipo(r.tipo),
     formatoFecha(r.recepcion),
     formatoFecha(r.termino),
@@ -231,16 +241,13 @@ export function exportarFichaOficioPdf(oficio: EvaluacionOficio["oficio"]) {
 
   doc.setFontSize(10);
   doc.setTextColor(40, 40, 40);
-  doc.text(`Folio: ${oficio.numero}`, 14, 48);
-  doc.text(`Tipo: ${etiquetaTipo(oficio.tipo ?? "oficio")}`, 14, 54);
-  doc.text(`Fecha de registro: ${oficio.fecha}`, 14, 60);
-  doc.text(`Estado: ${oficio.estado}`, 14, 66);
-  if (oficio.folioSalida) {
-    doc.text(`Folio de salida: ${oficio.folioSalida}`, 14, 72);
-  }
+  doc.text(`Folio: ${oficio.folio}`, 14, 48);
+  doc.text(`Tipo: ${etiquetaTipo(String(oficio.tipo_documento_id))}`, 14, 54);
+  doc.text(`Fecha de registro: ${oficio.fecha_recepcion}`, 14, 60);
+  doc.text(`Estado: ${ESTADO_MAP[oficio.estado_id] || "Desconocido"}`, 14, 66);
 
   // SECCIÓN: Datos del oficio
-  let y = oficio.folioSalida ? 84 : 78;
+  let y = 78;
   doc.setFontSize(12);
   doc.setTextColor(105, 28, 50);
   doc.text("Datos del oficio", 14, y);
@@ -253,12 +260,8 @@ export function exportarFichaOficioPdf(oficio: EvaluacionOficio["oficio"]) {
   doc.text(asuntoLines, 14, y);
   y += asuntoLines.length * 5 + 2;
 
-  doc.text(`Remitente / Destinatario (Departamento): ${oficio.departamento}`, 14, y);
+  doc.text(`Remitente / Destinatario (Departamento): ${DEPARTAMENTOS_DEMO.find(d => d.id === oficio.departamento_destino_inicial_id)?.nombre}`, 14, y);
   y += 6;
-  if (oficio.destinatariosPersonas?.length) {
-    doc.text(`Atención a: ${oficio.destinatariosPersonas.join(", ")}`, 14, y);
-    y += 6;
-  }
 
   // SECCIÓN: Fechas y Adjuntos
   y += 6;
@@ -271,16 +274,16 @@ export function exportarFichaOficioPdf(oficio: EvaluacionOficio["oficio"]) {
   y += 8;
   doc.text(`Fecha límite (Término): ${oficio.termino ? formatoFecha(new Date(oficio.termino + "T00:00:00")) : "No registrado"}`, 14, y);
   y += 6;
-  doc.text(`Fecha de envío: ${oficio.fechaEnvio || "No registrado"}`, 14, y);
+  doc.text(`Fecha de envío: ${oficio.creado_en || "No registrado"}`, 14, y);
   y += 6;
-  doc.text(`Documento principal: ${oficio.archivo || "No registrado"}`, 14, y);
+  doc.text(`Documento principal: ${oficio.adjuntos?.[0]?.nombre_archivo || "No registrado"}`, 14, y);
   y += 6;
 
   if (oficio.adjuntos && oficio.adjuntos.length > 0) {
     doc.text(`Otros adjuntos:`, 14, y);
     y += 6;
     oficio.adjuntos.forEach((adj) => {
-      doc.text(`- ${adj.nombre} (Agregado: ${adj.fecha})`, 18, y);
+      doc.text(`- ${adj.nombre_archivo} (Agregado: ${adj.creado_en})`, 18, y);
       y += 6;
     });
   }
@@ -289,7 +292,7 @@ export function exportarFichaOficioPdf(oficio: EvaluacionOficio["oficio"]) {
   doc.setFontSize(9);
   doc.text(`Página 1 de 1`, 14, doc.internal.pageSize.getHeight() - 10);
 
-  const safeName = oficio.numero.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeName = oficio.folio.replace(/[^a-zA-Z0-9_-]/g, "_");
   doc.save(`ficha_oficio_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
@@ -302,15 +305,15 @@ export function exportarSeguimientoPdf(oficio: EvaluacionOficio["oficio"]) {
 
   doc.setFontSize(10);
   doc.setTextColor(40, 40, 40);
-  doc.text(`Folio: ${oficio.numero}`, 14, 30);
-  doc.text(`Estado actual: ${oficio.estado}`, 14, 36);
-  doc.text(`Departamento: ${oficio.departamento}`, 14, 42);
+  doc.text(`Folio: ${oficio.folio}`, 14, 30);
+  doc.text(`Estado actual: ${ESTADO_MAP[oficio.estado_id] || ""}`, 14, 36);
+  doc.text(`Departamento: ${DEPARTAMENTOS_DEMO.find(d => d.id === oficio.departamento_destino_inicial_id)?.nombre}`, 14, 42);
   if (oficio.termino) {
     doc.text(`Límite: ${formatoFecha(new Date(oficio.termino + "T00:00:00"))}`, 14, 48);
   }
 
   const head = [["Fecha y hora", "Usuario / Depto", "Acción / Movimiento"]];
-  const body = oficio.seguimiento.map(s => [s.fecha, s.autor, s.accion]);
+  const body = (oficio.seguimiento ?? []).map(s => [s.creado_en, String(s.usuario_id), s.contenido]);
 
   autoTable(doc, {
     startY: 56,
@@ -330,7 +333,7 @@ export function exportarSeguimientoPdf(oficio: EvaluacionOficio["oficio"]) {
     }
   });
 
-  const safeName = oficio.numero.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeName = oficio.folio.replace(/[^a-zA-Z0-9_-]/g, "_");
   doc.save(`seguimiento_oficio_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
@@ -346,13 +349,13 @@ export async function exportarSeguimientoExcel(oficio: EvaluacionOficio["oficio"
   wsResumen.getCell("A1").font = { bold: true, size: 14, color: { argb: "FF691C32" } };
   
   wsResumen.getCell("A3").value = "Folio:";
-  wsResumen.getCell("B3").value = oficio.numero;
+  wsResumen.getCell("B3").value = oficio.folio;
   
   wsResumen.getCell("A4").value = "Asunto:";
   wsResumen.getCell("B4").value = oficio.asunto;
   
   wsResumen.getCell("A5").value = "Estado actual:";
-  wsResumen.getCell("B5").value = oficio.estado;
+  wsResumen.getCell("B5").value = ESTADO_MAP[oficio.estado_id];
 
   if (oficio.termino) {
     wsResumen.getCell("A6").value = "Fecha límite (Término):";
@@ -372,13 +375,15 @@ export async function exportarSeguimientoExcel(oficio: EvaluacionOficio["oficio"
   headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
   headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF691C32" } };
 
-  oficio.seguimiento.forEach(s => {
-    wsDetalle.addRow({
-      fecha: s.fecha,
-      autor: s.autor,
-      accion: s.accion
+  if (oficio.seguimiento) {
+    oficio.seguimiento.forEach(s => {
+      wsDetalle.addRow({
+        fecha: s.creado_en,
+        autor: s.usuario_id,
+        accion: s.contenido
+      });
     });
-  });
+  }
 
   wsDetalle.autoFilter = "A1:C1";
   wsDetalle.views = [{ state: "frozen", xSplit: 0, ySplit: 1 }];
@@ -398,7 +403,7 @@ export async function exportarSeguimientoExcel(oficio: EvaluacionOficio["oficio"
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  const safeName = oficio.numero.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeName = oficio.folio.replace(/[^a-zA-Z0-9_-]/g, "_");
   a.download = `seguimiento_oficio_${safeName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
   document.body.appendChild(a);
   a.click();

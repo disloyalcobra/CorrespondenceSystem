@@ -1,42 +1,38 @@
 import type { Usuario } from "./authTypes";
 
-export interface TestUser extends Usuario {
-  correo: string;
-  contrasena: string;
-}
+export type TestUser = Omit<Usuario, "id" | "password_hash"> & { passwordRaw: string };
 
-
-export const TEST_USERS: TestUser[] = [
+export const testUsers: TestUser[] = [
   {
-    correo: "usuario@puebla.gob.mx",
-    contrasena: "puebla2026",
-    nombre: "Lic. Carlos Eduardo Martínez López",
-    cargo: "Encargado de Protocolos",
-    dependencia: "Promoción Turística",
-    rol: "Usuario",
+    email: "admin@sectur.gob.mx",
+    passwordRaw: "admin123",
+    nombre: "Ana Martínez",
+    rol_id: 2,
+    departamento_id: 1, // Despacho
+    activo: true,
   },
   {
-    correo: "admin@puebla.gob.mx",
-    contrasena: "puebla2026",
-    nombre: "Ing. Jorge Luis Cano Pérez",
-    cargo: "Administrador del sistema",
-    dependencia: "Secretaría de Desarrollo Turístico",
-    rol: "Administrador",
+    email: "directora@sectur.gob.mx",
+    passwordRaw: "dir123",
+    nombre: "Laura Gómez",
+    rol_id: 3,
+    departamento_id: 1, // Despacho
+    activo: true,
   },
   {
-    correo: "directora@puebla.gob.mx",
-    contrasena: "puebla2026",
-    nombre: "Mtra. Fernanda Ibarra Solís",
-    cargo: "Directora de Promoción Turística",
-    dependencia: "Secretaría de Desarrollo Turístico",
-    rol: "Directora",
+    email: "jefe.ti@sectur.gob.mx",
+    passwordRaw: "jefe123",
+    nombre: "Carlos Ruiz",
+    rol_id: 4,
+    departamento_id: 3, // TI
+    activo: true,
   },
   {
-    correo: "jefedepto@puebla.gob.mx",
-    contrasena: "puebla2026",
-    nombre: "Lic. Ana Patricia Rojas Vega",
-    cargo: "Jefa de Departamento",
-    dependencia: "Protocolos",
-    rol: "JefeDepartamento",
+    email: "usuario.ti@sectur.gob.mx",
+    passwordRaw: "user123",
+    nombre: "Luis Fernández",
+    rol_id: 1,
+    departamento_id: 3, // TI
+    activo: true,
   },
 ];

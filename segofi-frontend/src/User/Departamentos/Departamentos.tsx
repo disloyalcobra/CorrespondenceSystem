@@ -4,7 +4,6 @@ import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
-import Avatar from "../../components/Avatar";
 import Toast from "../../components/Toast";
 import DataTable, { type Column } from "../../components/DataTable";
 import FormModal from "../../components/FormModal";
@@ -14,7 +13,7 @@ import {
   type Departamento,
 } from "../../Data/departamentos";
 
-const DEPARTAMENTO_VACIO = { nombre: "", codigo: "", responsable: "" };
+const DEPARTAMENTO_VACIO = { nombre: "", tipo: "" };
 
 export default function Departamentos() {
   const [departamentos, setDepartamentos] =
@@ -27,7 +26,7 @@ export default function Departamentos() {
   const [aviso, setAviso] = useState<string | null>(null);
 
   const filas = departamentos.filter((d) =>
-    `${d.nombre} ${d.codigo} ${d.responsable}`
+    `${d.nombre} ${d.tipo}`
       .toLowerCase()
       .includes(busqueda.toLowerCase()),
   );
@@ -40,7 +39,7 @@ export default function Departamentos() {
 
   const abrirEditar = (d: Departamento) => {
     setEditando(d);
-    setForm({ nombre: d.nombre, codigo: d.codigo, responsable: d.responsable });
+    setForm({ nombre: d.nombre, tipo: d.tipo });
     setModalAbierto(true);
   };
 
@@ -77,22 +76,13 @@ export default function Departamentos() {
       ),
     },
     {
-      header: "Código",
+      header: "Tipo",
       render: (d) => (
         <span className="rounded-md bg-dorado/15 px-2.5 py-1 text-xs font-bold text-dorado">
-          {d.codigo}
+          {d.tipo}
         </span>
       ),
-    },
-    {
-      header: "Responsable",
-      render: (d) => (
-        <span className="inline-flex items-center gap-2">
-          <Avatar nombre={d.responsable} size={28} />
-          {d.responsable}
-        </span>
-      ),
-    },
+    }
   ];
 
   return (
@@ -117,7 +107,7 @@ export default function Departamentos() {
           <Input
             label="Buscar"
             icon={<Search size={18} />}
-            placeholder="Nombre, código o responsable…"
+            placeholder="Nombre o tipo..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
@@ -144,15 +134,9 @@ export default function Departamentos() {
           required
         />
         <Input
-          label="Código"
-          value={form.codigo}
-          onChange={(e) => setForm({ ...form, codigo: e.target.value })}
-          required
-        />
-        <Input
-          label="Responsable"
-          value={form.responsable}
-          onChange={(e) => setForm({ ...form, responsable: e.target.value })}
+          label="Tipo"
+          value={form.tipo}
+          onChange={(e) => setForm({ ...form, tipo: e.target.value })}
           required
         />
       </FormModal>

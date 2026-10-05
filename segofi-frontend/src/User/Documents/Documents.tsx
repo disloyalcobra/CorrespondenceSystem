@@ -14,6 +14,13 @@ import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 import { PERSONAS_DEMO } from "../../Data/personas";
 import { useAuth } from "../../Guards/useAuth";
 
+const ETIQUETA_ROL: Record<number, string> = {
+  1: "Usuario",
+  2: "Administrador",
+  3: "Directora",
+  4: "Jefe de departamento",
+};
+
 const DEPARTAMENTOS_OPTS = DEPARTAMENTOS_DEMO.map((d) => ({
   value: d.nombre,
   label: d.nombre,
@@ -57,7 +64,7 @@ export default function Documents() {
   const [tieneTermino, setTieneTermino] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
 
-  const PERSONAS_ACTIVAS = PERSONAS_DEMO.filter((p) => p.departamento);
+  const PERSONAS_ACTIVAS = PERSONAS_DEMO.filter((p) => p.departamento_id);
   const personasSeleccionadas = PERSONAS_ACTIVAS.filter((p) =>
     personasDestinoIds.includes(String(p.id)),
   );
@@ -158,7 +165,7 @@ export default function Documents() {
                     {usuario?.nombre}
                   </p>
                   <p className="text-xs text-texto-secundario">
-                    {usuario?.cargo} · {usuario?.dependencia}
+                    {usuario?.rol_id ? ETIQUETA_ROL[usuario.rol_id] : ""} · {DEPARTAMENTOS_DEMO.find(d => d.id === usuario?.departamento_id)?.nombre}
                   </p>
                 </div>
               </div>
@@ -249,7 +256,7 @@ export default function Documents() {
                           <div>
                             <p className="text-sm text-texto">{p.nombre}</p>
                             <p className="text-xs text-texto-secundario">
-                              {p.departamento}
+                              {p.departamento_id ? DEPARTAMENTOS_DEMO.find(d => d.id === p.departamento_id)?.nombre : ""}
                             </p>
                           </div>
                         </label>

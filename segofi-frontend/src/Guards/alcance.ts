@@ -1,42 +1,35 @@
-import type { Usuario } from "./authTypes";
 import type { Oficio } from "../Data/oficio";
-import type { Notificacion } from "../Data/notificaciones";
+import type { Usuario } from "./authTypes";
 
-export const ROLES_ACCESO_TOTAL: Usuario["rol"][] = ["Administrador", "Directora"];
+const ROLES_ADMIN = [2, 3]; // Admin, Directora
 
 export function tieneAccesoTotal(usuario: Usuario | null): boolean {
-  return !!usuario && ROLES_ACCESO_TOTAL.includes(usuario.rol);
+  if (!usuario) return false;
+  return ROLES_ADMIN.includes(usuario.rol_id);
 }
 
-/**
- * Un oficio es visible si:
- * - el usuario tiene un rol de acceso total (Administrador/Directora), o
- * - el oficio es de su mismo departamento, o
- * - el oficio se le turnó a él directamente (destinatariosPersonas)
- */
 export function puedeVerOficio(usuario: Usuario | null, oficio: Oficio): boolean {
   if (!usuario) return false;
   if (tieneAccesoTotal(usuario)) return true;
-  if (oficio.departamento === usuario.dependencia) return true;
-  if (oficio.destinatariosPersonas?.includes(usuario.nombre)) return true;
+
+  // Pertenece a su departamento
+  if (oficio.departamento_destino_inicial_id === usuario.departamento_id) return true;
+
+  // O interactuó con él
+  if (oficio.seguimiento?.some(s => s.usuario_id === usuario.id)) return true;
+
   return false;
 }
 
 export function oficiosVisibles(usuario: Usuario | null, oficios: Oficio[]): Oficio[] {
+  if (!usuario) return [];
+  if (tieneAccesoTotal(usuario)) return oficios;
   return oficios.filter((o) => puedeVerOficio(usuario, o));
 }
 
-/**
- * Una notificación es visible si no tiene departamento asociado (aviso general)
- * o si coincide con el departamento del usuario — salvo acceso total, que ve todo.
- */
-export function puedeVerNotificacion(usuario: Usuario | null, n: Notificacion): boolean {
-  if (!usuario) return false;
-  if (tieneAccesoTotal(usuario)) return true;
-  if (!n.departamento) return true;
-  return n.departamento === usuario.dependencia;
-}
-
-export function notificacionesVisibles(usuario: Usuario | null, notificaciones: Notificacion[]): Notificacion[] {
-  return notificaciones.filter((n) => puedeVerNotificacion(usuario, n));
+export function notificacionesVisibles(usuario: Usuario | null, notificaciones: any[]) {
+  if (!usuario) return [];
+  if (tieneAccesoTotal(usuario)) return notificaciones;
+  // TODO: filtrar por departamento cuando la notificación esté conectada a la BD real
+  return notificaciones; 
 }

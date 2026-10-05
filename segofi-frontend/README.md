@@ -1,75 +1,37 @@
-# React + TypeScript + Vite
+# SegOfi — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web de gestión de documentos y oficios de SECTUR.
 
-Currently, two official plugins are available:
+## Tecnologías
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + TypeScript
+- Vite
+- React Router
+- Tailwind CSS
+- lucide-react
 
-## React Compiler
+## Desarrollo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Desde esta carpeta (`segofi-frontend/`):
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev
+npm run lint
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+## Organización
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `src/User/`: pantallas y módulos de usuario.
+- `src/Guards/`: autenticación, alcance y control de roles del frontend.
+- `src/Data/`: modelos y datos de demostración, no persistencia productiva.
+- `src/components/`: componentes reutilizables.
+- `docs/`: modelo relacional DBML y reglas de negocio adaptadas a SegOfi.
+- `specs/`: especificaciones de funcionalidades pendientes/de referencia.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Dominio de correspondencia
 
-```
+El modelo y las reglas de oficios, turnos, seguimientos, adjuntos, lecturas, salidas y auditoría están documentados en `docs/modelo-datos.dbml` y `docs/logica-sistema.md`. La especificación de registro de salidas está en `specs/001-salidas/`.
+
+Estos documentos migran el conocimiento funcional de SistemaCorrespondencia; no implican que exista aquí un backend o una base de datos conectada. El frontend debe consumir servicios del backend SegOfi cuando estén disponibles. No usar los mocks ni `localStorage` como fuente de verdad para datos institucionales.

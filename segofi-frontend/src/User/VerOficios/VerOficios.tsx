@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FilePlus2, FolderOpen, Search, FileText } from "lucide-react";
+import { FilePlus2, FolderOpen, Search } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
@@ -26,15 +26,33 @@ const FILTROS: ("Todos" | EstadoOficio)[] = [
   "Enviado",
 ];
 
+const ESTADO_MAP: Record<number, any> = {
+  1: "Recibido",
+  2: "En seguimiento",
+  3: "Turnado",
+  4: "Respondido",
+  5: "Cerrado",
+  6: "Enviado",
+};
+
+const ESTADO_INV_MAP: Record<string, number> = {
+  "Recibido": 1,
+  "En seguimiento": 2,
+  "Turnado": 3,
+  "Respondido": 4,
+  "Cerrado": 5,
+  "Enviado": 6,
+};
+
 const columns: Column<Oficio>[] = [
   {
     header: "Folio",
     render: (o) => {
-      const isUrgente = o.asunto.toLowerCase().includes("urgente") || o.seguimiento.some(s => s.accion.toLowerCase().includes("urgente"));
+      const isUrgente = o.asunto.toLowerCase().includes("urgente") || o.seguimiento?.some(s => s.contenido.toLowerCase().includes("urgente"));
       return (
         <div className="flex flex-col gap-1.5 items-start">
           <span className="font-bold text-guinda-dark text-[13.5px]">
-            {o.numero}
+            {o.folio}
           </span>
           {isUrgente && (
             <span className="inline-block text-[9.5px] font-extrabold bg-red-100 text-red-800 px-1.5 py-0.5 rounded uppercase tracking-wide">
@@ -53,7 +71,7 @@ const columns: Column<Oficio>[] = [
           {o.asunto}
         </span>
         <span className="text-[11.5px] text-slate-500 line-clamp-1">
-          Dest: {o.destinatariosPersonas?.join(", ") || o.departamento}
+          Dest: {o.destinatario}
         </span>
       </div>
     ) 
@@ -61,28 +79,31 @@ const columns: Column<Oficio>[] = [
   {
     header: "Tipo",
     render: (o) => {
-      const tipoData = TIPOS_DOCUMENTO.find((t) => t.value === o.tipo);
+      const tipoData = TIPOS_DOCUMENTO.find((t) => t.value === String(o.tipo_documento_id));
       return (
         <span className="text-[12px] text-[#4B5563] bg-[#F1F5F9] px-2 py-1 rounded-md font-medium">
-          {tipoData?.label || "Oficio"}
+          {tipoData?.label || `Tipo ${o.tipo_documento_id}`}
         </span>
       );
     },
   },
   {
     header: "Área Destino",
-    render: (o) => (
-      <div className="flex items-center gap-1.5 font-semibold text-texto-dark text-[12.5px]">
-        <Building2 size={13} className="text-dorado shrink-0" />
-        <span className="line-clamp-2">{o.departamento}</span>
-      </div>
-    ),
+    render: (o) => {
+      const depto = DEPARTAMENTOS_DEMO.find(d => d.id === o.departamento_destino_inicial_id)?.nombre || "Desconocido";
+      return (
+        <div className="flex items-center gap-1.5 font-semibold text-texto-dark text-[12.5px]">
+          <Building2 size={13} className="text-dorado shrink-0" />
+          <span className="line-clamp-2">{depto}</span>
+        </div>
+      );
+    },
   },
   { 
     header: "Recepción", 
     render: (o) => (
       <span className="text-[13px] text-slate-600 whitespace-nowrap">
-        {o.fecha.split(" ")[0]}
+        {o.fecha_recepcion.split("T")[0]}
       </span>
     ) 
   },
@@ -94,7 +115,7 @@ const columns: Column<Oficio>[] = [
       const parts = o.termino.split("-");
       const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
       const diff = Math.ceil((d.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-      const isVencido = diff < 0 && o.estado !== "Cerrado" && o.estado !== "Respondido";
+      const isVencido = diff < 0 && o.estado_id !== 5 && o.estado_id !== 4;
       
       return (
         <div className="flex flex-col gap-1 text-[13px]">
@@ -114,7 +135,7 @@ const columns: Column<Oficio>[] = [
       );
     } 
   },
-  { header: "Estado", render: (o) => <StatusBadge estado={o.estado} /> },
+  { header: "Estado", render: (o) => <StatusBadge estado={ESTADO_MAP[o.estado_id] || "Recibido"} /> },
 ];
 
 export default function VerOficios() {
@@ -131,17 +152,17 @@ export default function VerOficios() {
   const cuenta = (f: (typeof FILTROS)[number]) =>
     f === "Todos"
       ? alcance.length
-      : alcance.filter((o) => o.estado === f).length;
+      : alcance.filter((o) => o.estado_id === ESTADO_INV_MAP[f as string]).length;
 
   const q = busqueda.trim().toLowerCase();
-  const filas = alcance.filter(
-    (o) =>
-      (filtro === "Todos" || o.estado === filtro) &&
-      (deptoFilter === "Todos" || o.departamento === deptoFilter) &&
-      (tipoFilter === "Todos" || (o.tipo || "oficio") === tipoFilter) &&
+  const filas = alcance.filter((o) => {
+    const depto = DEPARTAMENTOS_DEMO.find(d => d.id === o.departamento_destino_inicial_id)?.nombre || "";
+    return (filtro === "Todos" || o.estado_id === ESTADO_INV_MAP[filtro as string]) &&
+      (deptoFilter === "Todos" || String(o.departamento_destino_inicial_id) === deptoFilter) &&
+      (tipoFilter === "Todos" || String(o.tipo_documento_id) === tipoFilter) &&
       (!q ||
-        `${o.numero} ${o.asunto} ${o.departamento}`.toLowerCase().includes(q)),
-  );
+        `${o.folio} ${o.asunto} ${depto}`.toLowerCase().includes(q));
+  });
 
   return (
     <div className="flex flex-col gap-5">
@@ -151,7 +172,7 @@ export default function VerOficios() {
         description={
           esGlobal
             ? "Consulta, filtra y revisa todos los documentos"
-            : `Documentos de ${usuario?.dependencia} o turnados a ti`
+            : `Documentos de tu departamento o turnados a ti`
         }
         action={
           esGlobal && (
@@ -189,7 +210,7 @@ export default function VerOficios() {
             >
               <option value="Todos">Todos los departamentos</option>
               {DEPARTAMENTOS_DEMO.map((d) => (
-                <option key={d.id} value={d.nombre}>
+                <option key={d.id} value={d.id}>
                   {d.nombre}
                 </option>
               ))}
@@ -243,7 +264,7 @@ export default function VerOficios() {
         <DataTable
           columns={columns}
           rows={filas}
-          onView={(oficio) => navigate(`/ver-oficios/detalle?oficio=${encodeURIComponent(oficio.numero)}`)}
+          onView={(oficio) => navigate(`/ver-oficios/detalle?oficio=${encodeURIComponent(oficio.folio)}`)}
           emptyMessage="Ningún oficio coincide con tu búsqueda."
         />
       </Card>

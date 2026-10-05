@@ -16,12 +16,22 @@ import Button from "../../components/Button";
 import Toast from "../../components/Toast";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import {
-  OFICIOS_DEMO,
   type Oficio,
   type EventoSeguimiento,
 } from "../../Data/oficio";
+import { useOficios } from "../../Data/oficiosStore";
 import { useAuth } from "../../Guards/useAuth";
 import { oficiosVisibles, tieneAccesoTotal } from "../../Guards/alcance";
+import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
+
+const ESTADO_MAP: Record<number, any> = {
+  1: "Recibido",
+  2: "En seguimiento",
+  3: "Turnado",
+  4: "Respondido",
+  5: "Cerrado",
+  6: "Enviado",
+};
 
 function ahora(): string {
   return new Date().toLocaleString("es-MX", {
@@ -37,8 +47,9 @@ interface SeguimientoProps {
 
 export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: SeguimientoProps) {
   const { usuario } = useAuth();
-  const alcance = oficiosVisibles(usuario, OFICIOS_DEMO);
-  const [numeroBuscado, setNumeroBuscado] = useState(oficioSeleccionado?.numero ?? "");
+  const oficiosStore = useOficios();
+  const alcance = oficiosVisibles(usuario, oficiosStore);
+  const [numeroBuscado, setNumeroBuscado] = useState(oficioSeleccionado?.folio ?? "");
   const [seleccionado, setSeleccionado] = useState<Oficio | null>(oficioSeleccionado);
   const [buscado, setBuscado] = useState(Boolean(oficioSeleccionado));
   const [nuevaObservacion, setNuevaObservacion] = useState("");
@@ -46,11 +57,13 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
   const [eventosExtra, setEventosExtra] = useState<EventoSeguimiento[]>([]);
   const [aviso, setAviso] = useState<string | null>(null);
   const [vistaDocumento, setVistaDocumento] = useState(false);
+  
+  const deptoName = DEPARTAMENTOS_DEMO.find(d => d.id === usuario?.departamento_id)?.nombre || "tu departamento";
 
   const ejecutarBusqueda = (numero: string) => {
     const encontrado =
       alcance.find(
-        (o) => o.numero.toLowerCase() === numero.trim().toLowerCase(),
+        (o) => o.folio.toLowerCase() === numero.trim().toLowerCase(),
       ) ?? null;
     setNumeroBuscado(numero);
     setSeleccionado(encontrado);
@@ -62,13 +75,16 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
   const agregarEvento = (accion: string) => {
     setEventosExtra((prev) => [
       ...prev,
-      { autor: usuario?.nombre ?? "Usuario", accion, fecha: ahora() },
+      { id: Date.now(), oficio_id: seleccionado?.id ?? 0, usuario_id: usuario?.id ?? 0, tipo: "Seguimiento", contenido: accion, creado_en: ahora() },
     ]);
   };
 
   const timeline = seleccionado
-    ? [...seleccionado.seguimiento, ...eventosExtra]
+    ? [...(seleccionado.seguimiento ?? []), ...eventosExtra]
     : [];
+
+  const archivo = seleccionado?.adjuntos?.[0]?.nombre_archivo ?? "Sin archivo";
+  const estadoStr = seleccionado ? (ESTADO_MAP[seleccionado.estado_id] || "Desconocido") : "";
 
   return (
     <div className="flex flex-col gap-5">
@@ -77,10 +93,10 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
         title="Seguimiento"
         description={
           oficioSeleccionado
-            ? `Historial y acciones del documento ${oficioSeleccionado.numero}`
+            ? `Historial y acciones del documento ${oficioSeleccionado.folio}`
             : tieneAccesoTotal(usuario)
               ? "Busca un oficio por su número y revisa todo lo que se ha hecho con él"
-              : `Solo puedes buscar oficios de ${usuario?.dependencia} o turnados a ti`
+              : `Solo puedes buscar oficios de ${deptoName} o turnados a ti`
         }
       />
 
@@ -110,12 +126,12 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
           <span className="text-xs text-texto-secundario">Prueba con:</span>
           {alcance.slice(0, 4).map((o) => (
             <button
-              key={o.numero}
+              key={o.folio}
               type="button"
-              onClick={() => ejecutarBusqueda(o.numero)}
+              onClick={() => ejecutarBusqueda(o.folio)}
               className="rounded-full border border-borde bg-white px-3 py-1 text-xs font-medium text-texto-secundario shadow-sm hover:border-guinda hover:text-guinda hover:-translate-y-px transition-all"
             >
-              {o.numero}
+              {o.folio}
             </button>
           ))}
         </div>
@@ -158,15 +174,15 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
                 </span>
                 <div>
                   <h2 className="text-lg font-bold text-guinda">
-                    {seleccionado.numero}
+                    {seleccionado.folio}
                   </h2>
                   <p className="text-sm text-texto-secundario">
-                    {seleccionado.asunto} · {seleccionado.archivo}
+                    {seleccionado.asunto} · {archivo}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <StatusBadge estado={seleccionado.estado} />
+                <StatusBadge estado={estadoStr} />
                 <Button
                   variant="outline"
                   icon={<FileText size={17} />}
@@ -211,11 +227,11 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
                   </span>
                   <div className="rounded-xl border border-borde bg-fondo/20 px-4 py-3 hover:shadow-md hover:bg-white transition-all">
                     <p className="text-sm font-semibold text-texto">
-                      {ev.autor}
+                      Usuario ID: {ev.usuario_id}
                     </p>
-                    <p className="text-sm text-texto-secundario">{ev.accion}</p>
+                    <p className="text-sm text-texto-secundario">{ev.contenido}</p>
                     <p className="text-xs text-texto-secundario mt-1">
-                      {ev.fecha}
+                      {ev.creado_en}
                     </p>
                   </div>
                 </li>
@@ -255,9 +271,9 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
           {vistaDocumento && (
             <DocumentPreviewModal
               open
-              numero={seleccionado.numero}
+              numero={seleccionado.folio}
               asunto={seleccionado.asunto}
-              archivo={seleccionado.archivo}
+              archivo={archivo}
               onClose={() => setVistaDocumento(false)}
             />
           )}

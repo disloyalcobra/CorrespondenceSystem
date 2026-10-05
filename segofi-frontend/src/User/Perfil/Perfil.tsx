@@ -13,12 +13,23 @@ import PasswordInput from "../../components/PasswordInput";
 import Button from "../../components/Button";
 import Avatar from "../../components/Avatar";
 import { useAuth } from "../../Guards/useAuth";
+import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
+
+const ETIQUETA_ROL: Record<number, string> = {
+  1: "Usuario",
+  2: "Administrador",
+  3: "Directora",
+  4: "Jefe de departamento",
+};
 
 export default function Perfil() {
   const { usuario } = useAuth();
   const [nombre, setNombre] = useState(usuario?.nombre ?? "");
-  const [cargo, setCargo] = useState(usuario?.cargo ?? "");
-  const [dependencia, setDependencia] = useState(usuario?.dependencia ?? "");
+  const [email, setEmail] = useState(usuario?.email ?? "");
+  
+  const rolName = usuario?.rol_id ? ETIQUETA_ROL[usuario.rol_id] : "";
+  const deptoName = DEPARTAMENTOS_DEMO.find(d => d.id === usuario?.departamento_id)?.nombre || "Desconocido";
+
   const [guardado, setGuardado] = useState(false);
 
   const guardar = (e: React.FormEvent) => {
@@ -41,16 +52,16 @@ export default function Perfil() {
           </div>
           <div className="flex-1 min-w-48 pt-2">
             <h1 className="text-xl font-bold text-guinda">{usuario?.nombre}</h1>
-            <p className="text-sm text-texto-secundario">{usuario?.cargo}</p>
+            <p className="text-sm text-texto-secundario">{rolName}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-guinda/10 px-3 py-1 text-xs font-semibold text-guinda">
               <ShieldCheck size={13} />
-              {usuario?.rol}
+              {rolName}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-dorado/15 px-3 py-1 text-xs font-semibold text-dorado">
               <Building2 size={13} />
-              {usuario?.dependencia}
+              {deptoName}
             </span>
           </div>
         </div>
@@ -70,16 +81,10 @@ export default function Perfil() {
             />
           </div>
           <Input
-            label="Cargo"
+            label="Correo Electrónico"
             icon={<Briefcase size={18} />}
-            value={cargo}
-            onChange={(e) => setCargo(e.target.value)}
-          />
-          <Input
-            label="Dependencia"
-            icon={<Building2 size={18} />}
-            value={dependencia}
-            onChange={(e) => setDependencia(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <div className="md:col-span-2">
             <PasswordInput

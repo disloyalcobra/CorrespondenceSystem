@@ -26,6 +26,7 @@ import {
   type EvaluacionOficio,
 } from "../../Data/analisisOficios";
 import { exportarReporteExcel, exportarReportePdf } from "../../Data/exportUtils";
+import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 
 type Periodo = "Semanal" | "Mensual" | "Anual";
 
@@ -37,11 +38,11 @@ const columns: Column<EvaluacionOficio>[] = [
   {
     header: "Número",
     render: (r) => {
-      const isUrgente = r.oficio.asunto.toLowerCase().includes("urgente") || r.oficio.seguimiento.some(s => s.accion.toLowerCase().includes("urgente"));
+      const isUrgente = r.oficio.asunto.toLowerCase().includes("urgente") || r.oficio.seguimiento?.some(s => s.contenido.toLowerCase().includes("urgente"));
       return (
         <div className="flex flex-col gap-1.5 items-start">
           <span className="font-bold text-guinda-dark text-[13.5px]">
-            {r.oficio.numero}
+            {r.oficio.folio}
           </span>
           {isUrgente && (
             <span className="inline-block text-[9.5px] font-extrabold bg-red-100 text-red-800 px-1.5 py-0.5 rounded uppercase tracking-wide">
@@ -54,16 +55,19 @@ const columns: Column<EvaluacionOficio>[] = [
   },
   {
     header: "Asunto",
-    render: (r) => (
-      <div className="flex flex-col gap-1 max-w-[240px]">
-        <span className="font-semibold text-texto-dark text-[13.5px] leading-snug line-clamp-2">
-          {r.oficio.asunto}
-        </span>
-        <span className="text-[11.5px] text-slate-500 line-clamp-1">
-          {r.oficio.departamento}
-        </span>
-      </div>
-    ),
+    render: (r) => {
+      const depto = DEPARTAMENTOS_DEMO.find(d => d.id === r.oficio.departamento_destino_inicial_id)?.nombre || "Desconocido";
+      return (
+        <div className="flex flex-col gap-1 max-w-[240px]">
+          <span className="font-semibold text-texto-dark text-[13.5px] leading-snug line-clamp-2">
+            {r.oficio.asunto}
+          </span>
+          <span className="text-[11.5px] text-slate-500 line-clamp-1">
+            {depto}
+          </span>
+        </div>
+      )
+    },
   },
   { 
     header: "Tipo", 
@@ -75,12 +79,15 @@ const columns: Column<EvaluacionOficio>[] = [
   },
   {
     header: "Área Destino",
-    render: (r) => (
-      <div className="flex items-center gap-1.5 font-semibold text-texto-dark text-[12.5px] max-w-[180px]">
-        <Building2 size={13} className="text-dorado shrink-0" />
-        <span className="line-clamp-2">{r.oficio.departamento}</span>
-      </div>
-    ),
+    render: (r) => {
+      const depto = DEPARTAMENTOS_DEMO.find(d => d.id === r.oficio.departamento_destino_inicial_id)?.nombre || "Desconocido";
+      return (
+        <div className="flex items-center gap-1.5 font-semibold text-texto-dark text-[12.5px] max-w-[180px]">
+          <Building2 size={13} className="text-dorado shrink-0" />
+          <span className="line-clamp-2">{depto}</span>
+        </div>
+      )
+    },
   },
   { 
     header: "Recepción", 

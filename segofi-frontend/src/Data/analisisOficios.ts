@@ -1,6 +1,5 @@
 import type { Oficio } from "./oficio";
-import { TIPOS_DOCUMENTO, type TipoDocumento } from "./tiposDocumento";
-import type { EstadoOficio } from "../components/StatusBadge";
+import { TIPOS_DOCUMENTO } from "./tiposDocumento";
 
 /**
  * Lógica pura de consulta y reportes de oficios.
@@ -55,21 +54,21 @@ export function etiquetaMes(clave: string): string {
 }
 
 /** Tipo de documento: usa el campo explícito o lo deduce del prefijo del número. */
-export function tipoDeOficio(oficio: Oficio): TipoDocumento["value"] {
-  if (oficio.tipo) return oficio.tipo;
-  const prefijo = oficio.numero.split("-")[0]?.toUpperCase();
-  if (prefijo === "OF") return "oficio";
-  if (prefijo === "MEMO") return "memo";
-  if (prefijo === "CIR") return "circular";
+export function tipoDeOficio(oficio: Oficio): string {
+  if (oficio.tipo_documento_id) return String(oficio.tipo_documento_id);
+  const prefijo = oficio.folio.split("-")[0]?.toUpperCase();
+  if (prefijo === "OF") return "1";
+  if (prefijo === "MEMO") return "2";
+  if (prefijo === "CIR") return "3";
   return "otro";
 }
 
-export function etiquetaTipo(valor: TipoDocumento["value"]): string {
-  return TIPOS_DOCUMENTO.find((t) => t.value === valor)?.label ?? "Otro";
+export function etiquetaTipo(valor: string): string {
+  return TIPOS_DOCUMENTO.find((t) => String(t.value) === String(valor))?.label ?? "Otro";
 }
 
 /** Estados que significan que el oficio ya fue atendido (respondido, cerrado o enviado). */
-export const ESTADOS_ATENDIDOS: EstadoOficio[] = ["Respondido", "Cerrado", "Enviado"];
+export const ESTADOS_ATENDIDOS: number[] = [4, 5, 6];
 
 export type Cumplimiento = "EN_TIEMPO" | "EXTEMPORANEO" | "ATENDIDO" | "VENCIDO_PENDIENTE" | "EN_PLAZO";
 
@@ -83,7 +82,7 @@ export const ETIQUETA_CUMPLIMIENTO: Record<Cumplimiento, string> = {
 
 export interface EvaluacionOficio {
   oficio: Oficio;
-  tipo: TipoDocumento["value"];
+  tipo: string;
   recepcion: Date | null;
   termino: Date | null;
   fechaRespuesta: Date | null;
@@ -97,19 +96,19 @@ const RESPUESTA = /^(emitió respuesta|respondió)/i;
 
 /** Fecha en que se atendió el oficio, según su historial real de seguimiento. */
 function fechaDeAtencion(oficio: Oficio): Date | null {
-  const respuesta = oficio.seguimiento.find((evento) => RESPUESTA.test(evento.accion));
-  if (respuesta) return parseFecha(respuesta.fecha);
-  if (oficio.estado === "Enviado" && oficio.fechaEnvio) return parseFecha(oficio.fechaEnvio);
-  if (ESTADOS_ATENDIDOS.includes(oficio.estado)) {
-    const ultimo = oficio.seguimiento[oficio.seguimiento.length - 1];
-    return parseFecha(ultimo?.fecha) ?? parseFecha(oficio.fecha);
+  const respuesta = oficio.seguimiento?.find((evento) => RESPUESTA.test(evento.contenido));
+  if (respuesta) return parseFecha(respuesta.creado_en);
+  if (oficio.estado_id === 6 && oficio.creado_en) return parseFecha(oficio.creado_en);
+  if (ESTADOS_ATENDIDOS.includes(oficio.estado_id)) {
+    const ultimo = oficio.seguimiento?.[oficio.seguimiento.length - 1];
+    return parseFecha(ultimo?.creado_en) ?? parseFecha(oficio.fecha_recepcion);
   }
   return null;
 }
 
 /** Misma regla de SistemaCorrespondencia: tiempo de respuesta y cumplimiento del término. */
 export function evaluarOficio(oficio: Oficio, hoy: Date = new Date()): EvaluacionOficio {
-  const recepcion = parseFecha(oficio.fecha);
+  const recepcion = parseFecha(oficio.fecha_recepcion);
   const termino = parseFecha(oficio.termino);
   const fechaRespuesta = fechaDeAtencion(oficio);
 

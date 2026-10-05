@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   House,
   Inbox,
@@ -15,7 +15,6 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "../../Guards/useAuth";
-import type { Rol } from "../../Guards/authTypes";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Avatar from "../../components/Avatar";
 import { NOTIFICACIONES } from "../../Data/notificaciones";
@@ -25,10 +24,10 @@ interface NavItem {
   to: string;
   label: string;
   icon: React.ReactNode;
-  rolesPermitidos?: Rol[];
+  rolesPermitidos?: number[];
 }
 
-const ADMIN_ROLES: Rol[] = ["Administrador", "Directora"];
+const ADMIN_ROLES: number[] = [2, 3]; // 2: Administrador, 3: Directora
 
 const MENU_PRINCIPAL: NavItem[] = [
   { to: "/dashboard", label: "Inicio", icon: <House size={24} /> },
@@ -66,32 +65,31 @@ const ADMINISTRAR: NavItem[] = [
   },
 ];
 
-const ETIQUETA_ROL: Record<Rol, string> = {
-  Usuario: "Usuario",
-  Administrador: "Administrador",
-  Directora: "Directora",
-  JefeDepartamento: "Jefe de departamento",
+const ETIQUETA_ROL: Record<number, string> = {
+  1: "Usuario",
+  2: "Administrador",
+  3: "Directora",
+  4: "Jefe de departamento",
 };
 
-function visiblesPara(items: NavItem[], rol?: Rol) {
+function visiblesPara(items: NavItem[], rol_id?: number) {
   return items.filter(
     (item) =>
-      !item.rolesPermitidos || (rol && item.rolesPermitidos.includes(rol)),
+      !item.rolesPermitidos || (rol_id && item.rolesPermitidos.includes(rol_id)),
   );
 }
 
 export default function Sidebar() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const cerrarConRetraso = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const menuPrincipal = visiblesPara(MENU_PRINCIPAL, usuario?.rol);
-  const acciones = visiblesPara(ACCIONES, usuario?.rol);
-  const administrar = visiblesPara(ADMINISTRAR, usuario?.rol);
+  const menuPrincipal = visiblesPara(MENU_PRINCIPAL, usuario?.rol_id);
+  const acciones = visiblesPara(ACCIONES, usuario?.rol_id);
+  const administrar = visiblesPara(ADMINISTRAR, usuario?.rol_id);
   const urgentOficios = notificacionesVisibles(usuario, NOTIFICACIONES);
   const notisPreview = urgentOficios.slice(0, 3);
 
@@ -198,7 +196,7 @@ export default function Sidebar() {
                 {usuario.nombre}
               </p>
               <p className="text-xs text-white/70 truncate">
-                {ETIQUETA_ROL[usuario.rol]}
+                {usuario.rol_id ? ETIQUETA_ROL[usuario.rol_id] : ""}
               </p>
             </div>
           </div>
@@ -298,7 +296,7 @@ export default function Sidebar() {
                         {usuario?.nombre}
                       </p>
                       <p className="text-xs text-texto-secundario truncate">
-                        {usuario?.cargo}
+                        {usuario?.rol_id ? ETIQUETA_ROL[usuario.rol_id] : ""}
                       </p>
                     </div>
                     <NavLink
@@ -335,7 +333,7 @@ export default function Sidebar() {
                 </span>
                 <span className="text-[12px] text-dorado flex items-center gap-1.5 font-semibold mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-dorado shadow-[0_0_4px_rgba(202,165,115,0.8)]"></span>
-                  {ETIQUETA_ROL[usuario?.rol as Rol]}
+                  {usuario?.rol_id ? ETIQUETA_ROL[usuario.rol_id] : ""}
                 </span>
               </div>
             </div>

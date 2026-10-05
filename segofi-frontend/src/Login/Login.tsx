@@ -5,7 +5,7 @@ import Input from "../components/Input";
 import PasswordInput from "../components/PasswordInput";
 import Button from "../components/Button";
 import { useAuth } from "../Guards/useAuth";
-import { TEST_USERS } from "../Guards/testUsers";
+import { testUsers, type TestUser } from "../Guards/testUsers";
 import Logo from "../components/Logo";
 import AuthBackground from "../components/AuthBackground";
 
@@ -21,9 +21,9 @@ export default function Login() {
     e.preventDefault();
     setError(null);
 
-    const usuario = TEST_USERS.find(
+    const usuario = testUsers.find(
       (u) =>
-        u.correo === correo.trim().toLowerCase() && u.contrasena === contrasena,
+        u.email === correo.trim().toLowerCase() && u.passwordRaw === contrasena,
     );
 
     if (!usuario) {
@@ -33,9 +33,14 @@ export default function Login() {
 
     setCargando(true);
     setTimeout(() => {
-      login(usuario);
+      login({ ...usuario, id: Math.floor(Math.random() * 1000), password_hash: "" });
       navigate("/dashboard");
     }, 700);
+  };
+
+  const rellenar = (u: TestUser) => {
+    setCorreo(u.email);
+    setContrasena(u.passwordRaw);
   };
 
   return (
@@ -102,6 +107,22 @@ export default function Login() {
             </Link>
           </p>
         </form>
+
+        <div className="mt-8 border-t border-slate-100 pt-6">
+          <p className="mb-2 text-xs text-texto-secundario">Cuentas de prueba:</p>
+          <div className="flex flex-wrap gap-2">
+            {testUsers.map((u) => (
+              <button
+                key={u.email}
+                type="button"
+                onClick={() => rellenar(u)}
+                className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+              >
+                {u.nombre.split(" ")[0]} ({u.rol_id})
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </AuthBackground>
   );
