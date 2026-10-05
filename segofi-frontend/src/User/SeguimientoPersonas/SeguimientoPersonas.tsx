@@ -3,7 +3,9 @@ import { ChevronDown, UsersRound } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Avatar from "../../components/Avatar";
-import { OFICIOS_DEMO } from "../../Data/oficio";
+import { useOficios } from "../../Data/oficiosStore";
+import { useAuth } from "../../Guards/useAuth";
+import { oficiosVisibles } from "../../Guards/alcance";
 
 interface AccionPersona {
   oficio: string;
@@ -18,10 +20,13 @@ interface Persona {
 
 export default function SeguimientoPersonas() {
   const [expandido, setExpandido] = useState<string | null>(null);
+  const { usuario } = useAuth();
+  const oficios = useOficios();
+  const visibles = oficiosVisibles(usuario, oficios);
 
   const personas = useMemo<Persona[]>(() => {
     const mapa = new Map<string, AccionPersona[]>();
-    for (const oficio of OFICIOS_DEMO) {
+    for (const oficio of visibles) {
       for (const ev of oficio.seguimiento) {
         const lista = mapa.get(ev.autor) ?? [];
         lista.push({
@@ -35,7 +40,7 @@ export default function SeguimientoPersonas() {
     return Array.from(mapa.entries())
       .map(([nombre, acciones]) => ({ nombre, acciones }))
       .sort((a, b) => b.acciones.length - a.acciones.length);
-  }, []);
+  }, [visibles]);
 
   const maximo = Math.max(...personas.map((p) => p.acciones.length), 1);
 

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import {
   FileText,
-  ListChecks,
   FolderOpen,
   Building2,
   Users,
@@ -30,12 +29,12 @@ const ADMIN_ROLES: Rol[] = ["Administrador", "Directora"];
 const ACCESOS = [
   {
     to: "/crear-oficio",
-    label: "Nuevo documento",
+    label: "Nuevo oficio",
     icon: FileText,
     rolesPermitidos: ADMIN_ROLES,
   },
-  { to: "/seguimiento", label: "Seguimiento", icon: ListChecks },
   { to: "/ver-oficios", label: "Ver oficios", icon: FolderOpen },
+  { to: "/enviados", label: "Enviados", icon: Archive },
   {
     to: "/departamentos",
     label: "Departamentos",
@@ -43,8 +42,8 @@ const ACCESOS = [
     rolesPermitidos: ADMIN_ROLES,
   },
   {
-    to: "/cuentas",
-    label: "Cuentas",
+    to: "/administracion",
+    label: "Administración",
     icon: Users,
     rolesPermitidos: ADMIN_ROLES,
   },
@@ -105,8 +104,54 @@ export default function Dashboard() {
     5: "sm:grid-cols-5",
   };
 
+  const fechaActual = new Date().toLocaleDateString("es-MX", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
     <div className="flex flex-col gap-5">
+      {/* Banner de bienvenida (SistemaCorrespondencia) */}
+      <div className="segofi-banner rounded-xl p-7 flex flex-wrap gap-4 items-center justify-between shadow-sm">
+        <div className="max-w-[700px]">
+          <div className="flex items-center gap-3 mb-1.5">
+            <span className="text-base font-extrabold text-guinda tracking-widest uppercase">
+              Inicio
+            </span>
+            <span className="text-base text-slate-500 flex items-center gap-1.5 capitalize">
+              • {fechaActual}
+            </span>
+          </div>
+          <h1 className="text-[32px] font-extrabold text-guinda-dark mb-1.5 leading-tight">
+            Bienvenido, {usuario?.nombre.split(" ")[0]}
+          </h1>
+          <p className="text-base text-slate-500">
+            Sistema de Gestión de Correspondencia y Oficios • {usuario?.dependencia}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {accesos.find(a => a.to === "/crear-oficio") && (
+            <Link
+              to="/crear-oficio"
+              className="flex items-center gap-2 bg-guinda hover:bg-guinda-dark text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+            >
+              <FileText size={18} />
+              Nuevo oficio
+            </Link>
+          )}
+          <Link
+            to="/ver-oficios"
+            className="flex items-center gap-2 bg-white hover:bg-slate-50 text-guinda border border-dorado px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+          >
+            <FolderOpen size={18} />
+            Ver bandeja
+          </Link>
+        </div>
+      </div>
+
       <Card
         title={
           esAdmin ? "Resumen del sistema" : `Resumen de ${usuario?.dependencia}`

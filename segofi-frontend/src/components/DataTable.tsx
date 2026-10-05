@@ -36,7 +36,7 @@ export default function DataTable<T>({
                 {col.header}
               </th>
             ))}
-            {showActions && <th className="px-4 py-3 font-semibold text-right">Acción</th>}
+            {showActions && <th className="px-4 py-3 font-semibold text-right">Acciones</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-borde">
@@ -60,10 +60,11 @@ export default function DataTable<T>({
                     {onView && (
                       <button
                         onClick={() => onView(row)}
-                        className="p-2 rounded-lg text-guinda hover:bg-guinda/10 hover:scale-110 transition-all"
-                        aria-label="Ver"
+                        className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors shadow-sm"
+                        aria-label="Ver Ficha"
                       >
-                        <Eye size={18} />
+                        <Eye size={14} className="text-guinda" />
+                        Ficha
                       </button>
                     )}
                     {onEdit && (

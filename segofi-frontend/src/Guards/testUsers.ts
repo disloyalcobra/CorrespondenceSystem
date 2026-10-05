@@ -12,7 +12,7 @@ export const TEST_USERS: TestUser[] = [
     contrasena: "puebla2026",
     nombre: "Lic. Carlos Eduardo Martínez López",
     cargo: "Encargado de Protocolos",
-    dependencia: "Secretaría de Desarrollo Turístico",
+    dependencia: "Promoción Turística",
     rol: "Usuario",
   },
   {
@@ -36,7 +36,7 @@ export const TEST_USERS: TestUser[] = [
     contrasena: "puebla2026",
     nombre: "Lic. Ana Patricia Rojas Vega",
     cargo: "Jefa de Departamento",
-    dependencia: "Secretaría de Desarrollo Turístico",
+    dependencia: "Protocolos",
     rol: "JefeDepartamento",
   },
 ];

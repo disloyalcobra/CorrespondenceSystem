@@ -14,6 +14,7 @@ import Input from "../../components/Input";
 import StatusBadge from "../../components/StatusBadge";
 import Button from "../../components/Button";
 import Toast from "../../components/Toast";
+import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import {
   OFICIOS_DEMO,
   type Oficio,
@@ -29,16 +30,22 @@ function ahora(): string {
   });
 }
 
-export default function Seguimiento() {
+interface SeguimientoProps {
+  oficioSeleccionado?: Oficio | null;
+  onCerrar?: () => void;
+}
+
+export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: SeguimientoProps) {
   const { usuario } = useAuth();
   const alcance = oficiosVisibles(usuario, OFICIOS_DEMO);
-  const [numeroBuscado, setNumeroBuscado] = useState("");
-  const [seleccionado, setSeleccionado] = useState<Oficio | null>(null);
-  const [buscado, setBuscado] = useState(false);
+  const [numeroBuscado, setNumeroBuscado] = useState(oficioSeleccionado?.numero ?? "");
+  const [seleccionado, setSeleccionado] = useState<Oficio | null>(oficioSeleccionado);
+  const [buscado, setBuscado] = useState(Boolean(oficioSeleccionado));
   const [nuevaObservacion, setNuevaObservacion] = useState("");
   const [lecturaConfirmada, setLecturaConfirmada] = useState(false);
   const [eventosExtra, setEventosExtra] = useState<EventoSeguimiento[]>([]);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [vistaDocumento, setVistaDocumento] = useState(false);
 
   const ejecutarBusqueda = (numero: string) => {
     const encontrado =
@@ -69,13 +76,15 @@ export default function Seguimiento() {
         icon={ListChecks}
         title="Seguimiento"
         description={
-          tieneAccesoTotal(usuario)
-            ? "Busca un oficio por su número y revisa todo lo que se ha hecho con él"
-            : `Solo puedes buscar oficios de ${usuario?.dependencia} o turnados a ti`
+          oficioSeleccionado
+            ? `Historial y acciones del documento ${oficioSeleccionado.numero}`
+            : tieneAccesoTotal(usuario)
+              ? "Busca un oficio por su número y revisa todo lo que se ha hecho con él"
+              : `Solo puedes buscar oficios de ${usuario?.dependencia} o turnados a ti`
         }
       />
 
-      <Card>
+      {!oficioSeleccionado && <Card>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -110,7 +119,7 @@ export default function Seguimiento() {
             </button>
           ))}
         </div>
-      </Card>
+      </Card>}
 
       {!buscado && (
         <Card>
@@ -159,6 +168,13 @@ export default function Seguimiento() {
               <div className="flex items-center gap-3">
                 <StatusBadge estado={seleccionado.estado} />
                 <Button
+                  variant="outline"
+                  icon={<FileText size={17} />}
+                  onClick={() => setVistaDocumento(true)}
+                >
+                  Ver documento
+                </Button>
+                <Button
                   icon={<CheckCircle2 size={18} />}
                   variant={lecturaConfirmada ? "outline" : "secondary"}
                   disabled={lecturaConfirmada}
@@ -175,6 +191,12 @@ export default function Seguimiento() {
               </div>
             </div>
           </Card>
+
+          {onCerrar && (
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={onCerrar}>Cerrar seguimiento</Button>
+            </div>
+          )}
 
           <Card title="Historial de seguimiento">
             <ol className="relative border-s-2 border-guinda/20 ms-3">
@@ -229,6 +251,16 @@ export default function Seguimiento() {
               </div>
             </div>
           </Card>
+
+          {vistaDocumento && (
+            <DocumentPreviewModal
+              open
+              numero={seleccionado.numero}
+              asunto={seleccionado.asunto}
+              archivo={seleccionado.archivo}
+              onClose={() => setVistaDocumento(false)}
+            />
+          )}
         </div>
       )}
 

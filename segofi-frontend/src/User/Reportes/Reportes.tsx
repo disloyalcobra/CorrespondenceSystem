@@ -5,66 +5,132 @@ import {
   FileStack,
   Clock3,
   CheckCircle2,
-  Archive,
+  AlertCircle,
   BarChart3,
   CalendarRange,
+  Building2,
 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import StatCard from "../../components/StatCard";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
-import Avatar from "../../components/Avatar";
 import Toast from "../../components/Toast";
 import DataTable, { type Column } from "../../components/DataTable";
-import { OFICIOS_DEMO } from "../../Data/oficio";
-
-interface RegistroAuditoria {
-  usuario: string;
-  accion: string;
-  documento: string;
-  fecha: string;
-}
+import { useOficios } from "../../Data/oficiosStore";
+import {
+  evaluarOficio,
+  formatoFecha,
+  etiquetaTipo,
+  ETIQUETA_CUMPLIMIENTO,
+  type EvaluacionOficio,
+} from "../../Data/analisisOficios";
+import { exportarReporteExcel, exportarReportePdf } from "../../Data/exportUtils";
 
 type Periodo = "Semanal" | "Mensual" | "Anual";
-
-const REGISTROS: RegistroAuditoria[] = OFICIOS_DEMO.flatMap((o) =>
-  o.seguimiento.map((ev) => ({
-    usuario: ev.autor,
-    accion: ev.accion,
-    documento: o.numero,
-    fecha: ev.fecha,
-  })),
-);
-
-// "dd/mm/yyyy hh:mm" -> Date
-function parseFecha(f: string): Date {
-  const [fecha, hora] = f.split(" ");
-  const [d, m, y] = fecha.split("/").map(Number);
-  const [hh, mm] = (hora ?? "00:00").split(":").map(Number);
-  return new Date(y, m - 1, d, hh, mm);
-}
 
 function aISO(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-const columns: Column<RegistroAuditoria>[] = [
+const columns: Column<EvaluacionOficio>[] = [
   {
-    header: "Usuario",
+    header: "Número",
+    render: (r) => {
+      const isUrgente = r.oficio.asunto.toLowerCase().includes("urgente") || r.oficio.seguimiento.some(s => s.accion.toLowerCase().includes("urgente"));
+      return (
+        <div className="flex flex-col gap-1.5 items-start">
+          <span className="font-bold text-guinda-dark text-[13.5px]">
+            {r.oficio.numero}
+          </span>
+          {isUrgente && (
+            <span className="inline-block text-[9.5px] font-extrabold bg-red-100 text-red-800 px-1.5 py-0.5 rounded uppercase tracking-wide">
+              Urgente
+            </span>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    header: "Asunto",
     render: (r) => (
-      <span className="inline-flex items-center gap-2">
-        <Avatar nombre={r.usuario} size={28} />
-        {r.usuario}
-      </span>
+      <div className="flex flex-col gap-1 max-w-[240px]">
+        <span className="font-semibold text-texto-dark text-[13.5px] leading-snug line-clamp-2">
+          {r.oficio.asunto}
+        </span>
+        <span className="text-[11.5px] text-slate-500 line-clamp-1">
+          {r.oficio.departamento}
+        </span>
+      </div>
     ),
   },
-  { header: "Acción", render: (r) => r.accion },
-  {
-    header: "Documento",
-    render: (r) => <span className="font-medium">{r.documento}</span>,
+  { 
+    header: "Tipo", 
+    render: (r) => (
+      <span className="text-[12px] text-[#4B5563] bg-[#F1F5F9] px-2 py-1 rounded-md font-medium">
+        {etiquetaTipo(r.tipo)}
+      </span>
+    ) 
   },
-  { header: "Fecha", render: (r) => r.fecha },
+  {
+    header: "Área Destino",
+    render: (r) => (
+      <div className="flex items-center gap-1.5 font-semibold text-texto-dark text-[12.5px] max-w-[180px]">
+        <Building2 size={13} className="text-dorado shrink-0" />
+        <span className="line-clamp-2">{r.oficio.departamento}</span>
+      </div>
+    ),
+  },
+  { 
+    header: "Recepción", 
+    render: (r) => (
+      <span className="text-[13px] text-slate-600 whitespace-nowrap">
+        {formatoFecha(r.recepcion)}
+      </span>
+    ) 
+  },
+  { 
+    header: "Término", 
+    render: (r) => {
+      if (!r.termino) return <span className="text-[13px] text-slate-600">—</span>;
+      
+      const isVencido = r.cumplimiento === "VENCIDO_PENDIENTE" || r.cumplimiento === "EXTEMPORANEO";
+      const diasStr = r.tiempoRespuestaDias ? ` (${r.tiempoRespuestaDias}d)` : "";
+      
+      return (
+        <div className="flex flex-col gap-1 text-[13px]">
+          <span className={isVencido ? "text-red-600 font-bold" : "text-slate-600"}>
+            {formatoFecha(r.termino)}
+          </span>
+          {isVencido ? (
+            <span className="text-[11px] font-bold text-red-600">
+              Vencido{diasStr}
+            </span>
+          ) : (
+            <span className="text-[11px] font-medium text-slate-500">
+              A tiempo{diasStr}
+            </span>
+          )}
+        </div>
+      );
+    } 
+  },
+  {
+    header: "Cumplimiento",
+    render: (r) => {
+      let colorClass = "bg-slate-100 text-slate-700";
+      if (r.cumplimiento === "EN_TIEMPO") colorClass = "bg-green-100 text-green-800";
+      if (r.cumplimiento === "EXTEMPORANEO") colorClass = "bg-amber-100 text-amber-800";
+      if (r.cumplimiento === "VENCIDO_PENDIENTE") colorClass = "bg-red-100 text-red-800";
+      
+      return (
+        <span className={`inline-block px-2.5 py-1 text-xs font-semibold rounded-full ${colorClass}`}>
+          {ETIQUETA_CUMPLIMIENTO[r.cumplimiento]}
+        </span>
+      );
+    },
+  },
 ];
 
 export default function Reportes() {
@@ -73,13 +139,7 @@ export default function Reportes() {
   const [hasta, setHasta] = useState("");
   const [aviso, setAviso] = useState<string | null>(null);
 
-  const pendientes = OFICIOS_DEMO.filter((o) =>
-    ["Recibido", "Turnado", "En seguimiento"].includes(o.estado),
-  ).length;
-  const respondidos = OFICIOS_DEMO.filter(
-    (o) => o.estado === "Respondido",
-  ).length;
-  const cerrados = OFICIOS_DEMO.filter((o) => o.estado === "Cerrado").length;
+  const oficios = useOficios();
 
   const seleccionarPeriodo = (p: Periodo) => {
     const hoy = new Date();
@@ -97,40 +157,46 @@ export default function Reportes() {
   };
 
   const filas = useMemo(() => {
-    if (!desde && !hasta) return REGISTROS;
-    return REGISTROS.filter((r) => {
-      const f = parseFecha(r.fecha);
-      if (desde && f < new Date(desde)) return false;
-      if (hasta && f > new Date(hasta + "T23:59:59")) return false;
-      return true;
-    });
-  }, [desde, hasta]);
+    return oficios
+      .map((o) => evaluarOficio(o))
+      .filter((r) => {
+        if (!desde && !hasta) return true;
+        const f = r.recepcion;
+        if (!f) return false;
+        if (desde && f < new Date(desde + "T00:00:00")) return false;
+        if (hasta && f > new Date(hasta + "T23:59:59")) return false;
+        return true;
+      });
+  }, [oficios, desde, hasta]);
 
-  const exportarExcel = () => {
-    const encabezado = "Usuario,Acción,Documento,Fecha\n";
-    const cuerpo = filas
-      .map((r) => `"${r.usuario}","${r.accion}","${r.documento}","${r.fecha}"`)
-      .join("\n");
-    const blob = new Blob([encabezado + cuerpo], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "reporte-auditoria.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-    setAviso("Reporte descargado");
+  const enTiempo = filas.filter((r) => r.cumplimiento === "EN_TIEMPO").length;
+  const extemporaneos = filas.filter((r) => r.cumplimiento === "EXTEMPORANEO").length;
+  const vencidos = filas.filter((r) => r.cumplimiento === "VENCIDO_PENDIENTE").length;
+
+  const exportarExcel = async () => {
+    if (filas.length === 0) {
+      setAviso("No hay datos para exportar.");
+      return;
+    }
+    await exportarReporteExcel(filas, desde, hasta);
+    setAviso("Reporte Excel generado y descargado.");
   };
 
-  const exportarPdf = () => window.print();
+  const exportarPdf = () => {
+    if (filas.length === 0) {
+      setAviso("No hay datos para exportar.");
+      return;
+    }
+    exportarReportePdf(filas, desde, hasta);
+    setAviso("Reporte PDF generado y descargado.");
+  };
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
         icon={BarChart3}
         title="Generar reporte"
-        description="Auditoría de acciones por periodo, con exportación a Excel y PDF"
+        description="Análisis de oficios, cumplimiento de términos y exportación."
         action={
           <>
             <Button
@@ -153,28 +219,28 @@ export default function Reportes() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard
-          label="Total de oficios"
-          value={OFICIOS_DEMO.length}
+          label="Total analizados"
+          value={filas.length}
           icon={FileStack}
           tone="guinda"
         />
         <StatCard
-          label="Pendientes"
-          value={pendientes}
-          icon={Clock3}
-          tone="amber"
-        />
-        <StatCard
-          label="Respondidos"
-          value={respondidos}
+          label="En tiempo"
+          value={enTiempo}
           icon={CheckCircle2}
           tone="emerald"
         />
         <StatCard
-          label="Cerrados"
-          value={cerrados}
-          icon={Archive}
-          tone="gray"
+          label="Extemporáneos"
+          value={extemporaneos}
+          icon={Clock3}
+          tone="amber"
+        />
+        <StatCard
+          label="Vencidos"
+          value={vencidos}
+          icon={AlertCircle}
+          tone="guinda"
         />
       </div>
 
@@ -247,4 +313,3 @@ export default function Reportes() {
     </div>
   );
 }
-
