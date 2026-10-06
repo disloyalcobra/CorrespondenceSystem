@@ -8,14 +8,16 @@ import Toast from "../../components/Toast";
 import DataTable, { type Column } from "../../components/DataTable";
 import FormModal from "../../components/FormModal";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import { useOficios } from "../../Data/oficiosStore";
 import {
   DEPARTAMENTOS_DEMO,
   type Departamento,
 } from "../../Data/departamentos";
 
-const DEPARTAMENTO_VACIO = { nombre: "", tipo: "" };
+const DEPARTAMENTO_VACIO = { nombre: "", tipo: "", clave: "" };
 
 export default function Departamentos() {
+  const oficios = useOficios();
   const [departamentos, setDepartamentos] =
     useState<Departamento[]>(DEPARTAMENTOS_DEMO);
   const [busqueda, setBusqueda] = useState("");
@@ -39,7 +41,7 @@ export default function Departamentos() {
 
   const abrirEditar = (d: Departamento) => {
     setEditando(d);
-    setForm({ nombre: d.nombre, tipo: d.tipo });
+    setForm({ nombre: d.nombre, tipo: d.tipo, clave: d.clave });
     setModalAbierto(true);
   };
 
@@ -71,7 +73,10 @@ export default function Departamentos() {
           <span className="h-9 w-9 rounded-lg bg-guinda/10 text-guinda flex items-center justify-center">
             <Building2 size={16} />
           </span>
-          {d.nombre}
+          <div className="flex flex-col leading-tight">
+            <span>{d.nombre}</span>
+            <span className="text-[11px] text-slate-500 font-normal">Clave: {d.clave}</span>
+          </div>
         </span>
       ),
     },
@@ -82,6 +87,13 @@ export default function Departamentos() {
           {d.tipo}
         </span>
       ),
+    },
+    {
+      header: "Oficios Asignados",
+      render: (d) => {
+        const count = oficios.filter(o => o.departamento_destino_inicial_id === d.id).length;
+        return <span className="font-semibold text-texto-dark">{count}</span>;
+      },
     }
   ];
 
@@ -131,6 +143,12 @@ export default function Departamentos() {
           label="Nombre del departamento"
           value={form.nombre}
           onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+          required
+        />
+        <Input
+          label="Clave del departamento"
+          value={form.clave}
+          onChange={(e) => setForm({ ...form, clave: e.target.value })}
           required
         />
         <Input

@@ -9,6 +9,7 @@ import {
   BarChart3,
   CalendarRange,
   Building2,
+  Filter
 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
@@ -144,6 +145,7 @@ export default function Reportes() {
   const [periodo, setPeriodo] = useState<Periodo | null>(null);
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
+  const [deptoFiltro, setDeptoFiltro] = useState<number | "todos">("todos");
   const [aviso, setAviso] = useState<string | null>(null);
 
   const oficios = useOficios();
@@ -167,6 +169,7 @@ export default function Reportes() {
     return oficios
       .map((o) => evaluarOficio(o))
       .filter((r) => {
+        if (deptoFiltro !== "todos" && r.oficio.departamento_destino_inicial_id !== deptoFiltro) return false;
         if (!desde && !hasta) return true;
         const f = r.recepcion;
         if (!f) return false;
@@ -174,7 +177,7 @@ export default function Reportes() {
         if (hasta && f > new Date(hasta + "T23:59:59")) return false;
         return true;
       });
-  }, [oficios, desde, hasta]);
+  }, [oficios, desde, hasta, deptoFiltro]);
 
   const enTiempo = filas.filter((r) => r.cumplimiento === "EN_TIEMPO").length;
   const extemporaneos = filas.filter((r) => r.cumplimiento === "EXTEMPORANEO").length;
@@ -292,13 +295,29 @@ export default function Reportes() {
               }}
             />
           </div>
-          {(desde || hasta) && (
+          <div className="w-48">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[13px] font-medium text-slate-700">Departamento</label>
+              <select
+                value={deptoFiltro}
+                onChange={(e) => setDeptoFiltro(e.target.value === "todos" ? "todos" : Number(e.target.value))}
+                className="h-10 px-3 rounded-md border border-borde bg-white text-sm text-texto-dark focus:outline-none focus:ring-2 focus:ring-guinda/20 focus:border-guinda transition-all"
+              >
+                <option value="todos">Todos los departamentos</option>
+                {DEPARTAMENTOS_DEMO.map(d => (
+                  <option key={d.id} value={d.id}>{d.nombre}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {(desde || hasta || deptoFiltro !== "todos") && (
             <Button
               variant="outline"
               onClick={() => {
                 setPeriodo(null);
                 setDesde("");
                 setHasta("");
+                setDeptoFiltro("todos");
               }}
             >
               Limpiar

@@ -1,14 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { Navigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, User, Building2, X } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, MapPin, Save, UploadCloud } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
 import Select from "../../components/Select";
-import Avatar from "../../components/Avatar";
 import Toast from "../../components/Toast";
 import FileUploadField from "../../components/FileUploadField";
 import Button from "../../components/Button";
+import Avatar from "../../components/Avatar";
 import { TIPOS_DOCUMENTO } from "../../Data/tiposDocumento";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 import { PERSONAS_DEMO } from "../../Data/personas";
@@ -22,33 +22,22 @@ const ETIQUETA_ROL: Record<number, string> = {
 };
 
 const DEPARTAMENTOS_OPTS = DEPARTAMENTOS_DEMO.map((d) => ({
-  value: d.nombre,
+  value: String(d.id),
   label: d.nombre,
 }));
 
-type ModoDestinatario = "departamento" | "persona";
+const PRIORIDAD_OPTS = [
+  { value: "Normal", label: "Normal" },
+  { value: "Urgente", label: "Urgente" },
+  { value: "Extraurgente", label: "Extraurgente" },
+];
 
-function Seccion({
-  numero,
-  titulo,
-  children,
-}: {
-  numero: number;
-  titulo: string;
-  children: ReactNode;
-}) {
+function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
   return (
-    <section className="rounded-xl border border-borde bg-fondo/20 p-5">
-      <div className="flex items-center gap-3 mb-4">
-        <span className="h-7 w-7 rounded-full bg-guinda text-white text-sm font-bold flex items-center justify-center shadow-sm">
-          {numero}
-        </span>
-        <h3 className="text-sm font-semibold text-guinda uppercase tracking-wide">
-          {titulo}
-        </h3>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">{children}</div>
-    </section>
+    <div className="flex items-center gap-2 mb-4 border-b border-borde pb-3">
+      <Icon size={18} className="text-guinda" />
+      <h3 className="font-bold text-guinda text-sm uppercase tracking-wide">{title}</h3>
+    </div>
   );
 }
 
@@ -57,52 +46,28 @@ export default function Documents() {
   const tipoDoc = TIPOS_DOCUMENTO.find((t) => t.value === tipo);
   const { usuario } = useAuth();
 
-  const [modoDestinatario, setModoDestinatario] =
-    useState<ModoDestinatario>("departamento");
   const [departamentoDestino, setDepartamentoDestino] = useState("");
   const [personasDestinoIds, setPersonasDestinoIds] = useState<string[]>([]);
-  const [tieneTermino, setTieneTermino] = useState(false);
+  const [prioridad, setPrioridad] = useState("Normal");
   const [aviso, setAviso] = useState<string | null>(null);
 
   const PERSONAS_ACTIVAS = PERSONAS_DEMO.filter((p) => p.departamento_id);
-  const personasSeleccionadas = PERSONAS_ACTIVAS.filter((p) =>
-    personasDestinoIds.includes(String(p.id)),
-  );
-  const todasMarcadas = personasDestinoIds.length === PERSONAS_ACTIVAS.length;
 
-  const togglePersona = (id: string) => {
-    setPersonasDestinoIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  };
+  // Generar folio aleatorio simulado al cargar
+  const [folioGenerado] = useState(() => {
+    const year = new Date().getFullYear();
+    const consecutivo = String(Math.floor(Math.random() * 1000)).padStart(4, "0");
+    return `SECTUR/DGT/${year}/${consecutivo}`;
+  });
 
   if (!tipoDoc) return <Navigate to="/crear-oficio" replace />;
-
-  const botonModo = (
-    modo: ModoDestinatario,
-    etiqueta: string,
-    icono: ReactNode,
-  ) => (
-    <button
-      type="button"
-      onClick={() => setModoDestinatario(modo)}
-      className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-        modoDestinatario === modo
-          ? "bg-guinda text-white border-guinda shadow-sm"
-          : "bg-white text-texto-secundario border-borde hover:border-guinda hover:text-guinda"
-      }`}
-    >
-      {icono}
-      {etiqueta}
-    </button>
-  );
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
         icon={tipoDoc.icon}
         title={`Nuevo ${tipoDoc.label.toLowerCase()}`}
-        description="Completa los datos y adjunta el documento en PDF"
+        description="Completa los datos para registrar un nuevo documento"
         action={
           <Link
             to="/crear-oficio"
@@ -114,202 +79,180 @@ export default function Documents() {
         }
       />
 
-      <Card>
-        <form
-          className="flex flex-col gap-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setAviso("Documento guardado correctamente");
-          }}
-        >
-          <Seccion numero={1} titulo="Datos generales">
-            <Select
-              label="Tipo de documento"
-              options={TIPOS_DOCUMENTO}
-              value={tipoDoc.value}
-              disabled
-            />
-            <Input
-              label="Número de documento"
-              placeholder="Ej. OF-0143/2026"
-              required
-            />
-            <div className="md:col-span-2">
+      <form
+        className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setAviso("Documento guardado correctamente");
+        }}
+      >
+        {/* Columna Izquierda: Datos Generales */}
+        <div className="lg:col-span-2 flex flex-col gap-5">
+          <Card bodyClassName="p-6">
+            <SectionTitle icon={FileText} title="Datos Generales del Oficio" />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Folio institucional (automático)"
+                  value={folioGenerado}
+                  disabled
+                  readOnly
+                />
+                <span className="text-[11px] text-texto-secundario mt-1">Folio oficial consecutivo generado automáticamente.</span>
+              </div>
+              <Select
+                label="Tipo de documento (obligatorio)"
+                options={TIPOS_DOCUMENTO}
+                value={tipoDoc.value}
+                disabled
+              />
+            </div>
+
+            <div className="mb-5">
               <Input
-                label="Asunto"
-                placeholder="Asunto del documento"
+                label="Asunto (obligatorio)"
+                placeholder="Ej.: solicitud de apoyo para el Tianguis Turístico 2026..."
                 required
               />
             </div>
-            <div className="md:col-span-2 flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-texto">
-                Objeto (captura completa)
+
+            <div className="flex flex-col gap-1.5 mb-5">
+              <label className="text-sm font-bold text-texto">
+                Descripción del oficio
               </label>
               <textarea
                 rows={4}
-                placeholder="Describe el contenido del documento…"
-                className="w-full rounded-lg border border-borde bg-white px-4 py-3 text-base shadow-sm transition-all
+                placeholder="Describe los antecedentes o la solicitud del oficio..."
+                className="w-full rounded-lg border border-borde bg-white px-4 py-3 text-sm shadow-sm transition-all
                   hover:border-guinda/40 focus:outline-none focus:ring-2 focus:ring-guinda/40 focus:border-guinda focus:shadow-md"
               />
             </div>
-          </Seccion>
 
-          <Seccion numero={2} titulo="Remitente y destinatario">
-            {/* Remitente: se reconoce automáticamente de la cuenta con la que se inició sesión */}
-            <div className="md:col-span-2 flex flex-col gap-1.5">
-              <span className="text-sm font-medium text-texto">Remitente</span>
-              <div className="flex items-center gap-3 rounded-lg border border-borde bg-white px-4 py-3 shadow-sm">
-                {usuario && <Avatar nombre={usuario.nombre} size={40} />}
-                <div>
-                  <p className="text-sm font-medium text-texto">
-                    {usuario?.nombre}
-                  </p>
-                  <p className="text-xs text-texto-secundario">
-                    {usuario?.rol_id ? ETIQUETA_ROL[usuario.rol_id] : ""} · {DEPARTAMENTOS_DEMO.find(d => d.id === usuario?.departamento_id)?.nombre}
-                  </p>
+            <div>
+              <label className="text-sm font-bold text-texto mb-2 block">
+                Documento escaneado y anexos (PDF)
+              </label>
+              <div className="border-2 border-dashed border-borde rounded-xl p-8 bg-fondo/30 flex flex-col items-center justify-center text-center transition-colors hover:bg-fondo/50 hover:border-guinda/30">
+                <div className="h-12 w-12 rounded-full bg-guinda/10 text-guinda flex items-center justify-center mb-3">
+                  <UploadCloud size={24} />
+                </div>
+                <h4 className="text-sm font-bold text-texto mb-1">Arrastra y suelta tus archivos aquí</h4>
+                <p className="text-xs text-texto-secundario mb-4">Soporta documentos PDF, DOCX o imágenes escaneadas de hasta 25 MB</p>
+                <Button type="button" variant="outline" className="text-guinda border-guinda/20 bg-white hover:bg-guinda/5">
+                  Seleccionar desde el equipo
+                </Button>
+              </div>
+              <p className="text-xs font-bold text-guinda mt-3">Archivos listos para adjuntar (0):</p>
+            </div>
+          </Card>
+        </div>
+
+        {/* Columna Derecha: Enrutamiento y Fechas */}
+        <div className="flex flex-col gap-5">
+          <Card bodyClassName="p-5">
+            <SectionTitle icon={MapPin} title="Remitente y Destinatario" />
+            <div className="flex flex-col gap-5">
+              
+              <div>
+                <span className="text-sm font-medium text-texto mb-2 block">Remitente</span>
+                <div className="flex items-center gap-3 rounded-lg border border-borde bg-white px-4 py-3 shadow-sm">
+                  {usuario && <Avatar nombre={usuario.nombre} size={40} />}
+                  <div>
+                    <p className="text-sm font-medium text-texto">{usuario?.nombre}</p>
+                    <p className="text-xs text-texto-secundario">
+                      {usuario?.rol_id ? ETIQUETA_ROL[usuario.rol_id] : ""} · {DEPARTAMENTOS_DEMO.find(d => d.id === usuario?.departamento_id)?.nombre}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Dirigido a: por departamento o por una o varias personas */}
-            <div className="md:col-span-2 flex flex-col gap-3">
-              <span className="text-sm font-medium text-texto">Dirigido a</span>
-              <div className="flex gap-2">
-                {botonModo(
-                  "departamento",
-                  "Departamento",
-                  <Building2 size={15} />,
-                )}
-                {botonModo("persona", "Personas", <User size={15} />)}
-              </div>
-
-              {modoDestinatario === "departamento" ? (
+              <div className="flex flex-col gap-1">
                 <Select
-                  label="Departamento"
+                  label="Departamento destino (obligatorio)"
                   options={DEPARTAMENTOS_OPTS}
-                  placeholder="Selecciona un departamento"
+                  placeholder="Selecciona el departamento"
                   value={departamentoDestino}
-                  onChange={(e) => setDepartamentoDestino(e.target.value)}
+                  onChange={(e) => {
+                    setDepartamentoDestino(e.target.value);
+                    setPersonasDestinoIds([]); // Limpiar personas si cambia el dep
+                  }}
                   required
                 />
-              ) : (
+                <span className="text-[11px] text-texto-secundario mt-1">Define qué área recibirá y dará curso al documento.</span>
+              </div>
+
+              {departamentoDestino && (
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-texto-secundario">
-                      Puedes turnar el documento a varias personas a la vez (
-                      {personasDestinoIds.length} seleccionadas).
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setPersonasDestinoIds(
-                          todasMarcadas
-                            ? []
-                            : PERSONAS_ACTIVAS.map((p) => String(p.id)),
-                        )
-                      }
-                      className="text-xs font-semibold text-guinda hover:underline"
-                    >
-                      {todasMarcadas ? "Quitar todas" : "Seleccionar todas"}
-                    </button>
-                  </div>
-
-                  {personasSeleccionadas.length > 0 && (
-                    <div className="flex flex-wrap gap-2 animate-in fade-in duration-150">
-                      {personasSeleccionadas.map((p) => (
-                        <span
-                          key={p.id}
-                          className="inline-flex items-center gap-2 rounded-full bg-guinda/10 text-guinda text-xs font-medium pl-1.5 pr-2 py-1 animate-in zoom-in-90 duration-150"
-                        >
-                          <Avatar nombre={p.nombre} size={22} />
-                          {p.nombre}
-                          <button
-                            type="button"
-                            onClick={() => togglePersona(String(p.id))}
-                            className="rounded-full hover:bg-guinda/20 p-0.5 transition-colors"
-                            aria-label={`Quitar a ${p.nombre}`}
-                          >
-                            <X size={12} />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="rounded-lg border border-borde bg-white max-h-56 overflow-y-auto divide-y divide-borde shadow-sm">
-                    {PERSONAS_ACTIVAS.map((p) => {
+                  <span className="text-sm font-medium text-texto">Personas a turnar (Opcional)</span>
+                  <div className="rounded-lg border border-borde bg-white max-h-48 overflow-y-auto divide-y divide-borde shadow-sm">
+                    {PERSONAS_ACTIVAS.filter(p => String(p.departamento_id) === departamentoDestino).map((p) => {
                       const marcado = personasDestinoIds.includes(String(p.id));
                       return (
                         <label
                           key={p.id}
-                          className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors ${
+                          className={`flex items-center gap-3 px-4 py-2 cursor-pointer transition-colors ${
                             marcado ? "bg-guinda/5" : "hover:bg-fondo/50"
                           }`}
                         >
                           <input
                             type="checkbox"
                             checked={marcado}
-                            onChange={() => togglePersona(String(p.id))}
+                            onChange={() => {
+                              setPersonasDestinoIds((prev) =>
+                                prev.includes(String(p.id))
+                                  ? prev.filter((x) => x !== String(p.id))
+                                  : [...prev, String(p.id)]
+                              );
+                            }}
                             className="h-4 w-4 accent-guinda"
                           />
-                          <Avatar nombre={p.nombre} size={32} />
-                          <div>
-                            <p className="text-sm text-texto">{p.nombre}</p>
-                            <p className="text-xs text-texto-secundario">
-                              {p.departamento_id ? DEPARTAMENTOS_DEMO.find(d => d.id === p.departamento_id)?.nombre : ""}
-                            </p>
-                          </div>
+                          <Avatar nombre={p.nombre} size={28} />
+                          <p className="text-sm text-texto">{p.nombre}</p>
                         </label>
                       );
                     })}
+                    {PERSONAS_ACTIVAS.filter(p => String(p.departamento_id) === departamentoDestino).length === 0 && (
+                      <div className="px-4 py-3 text-xs text-texto-secundario text-center">
+                        No hay personas registradas en este departamento.
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
-            </div>
-          </Seccion>
 
-          <Seccion numero={3} titulo="Fechas y término">
-            <Input label="Fecha del documento" type="date" required />
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Fecha de recepción" type="date" required />
-              <Input label="Hora de recepción" type="time" required />
-            </div>
-            <Input label="Fecha de turno" type="date" />
-            <Input label="Hora de turno" type="time" />
-
-            <label className="md:col-span-2 flex items-center gap-2 text-sm text-texto cursor-pointer">
-              <input
-                type="checkbox"
-                checked={tieneTermino}
-                onChange={(e) => setTieneTermino(e.target.checked)}
-                className="h-4 w-4 accent-guinda"
+              <Select
+                label="Prioridad del trámite"
+                options={PRIORIDAD_OPTS}
+                value={prioridad}
+                onChange={(e) => setPrioridad(e.target.value)}
+                required
               />
-              Este documento tiene término / plazo de atención
-            </label>
-            {tieneTermino && (
-              <div className="md:col-span-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                <Input label="Fecha límite de término" type="date" required />
-              </div>
-            )}
-          </Seccion>
-
-          <Seccion numero={4} titulo="Documento">
-            <div className="md:col-span-2">
-              <FileUploadField label="Documento en PDF" />
             </div>
-          </Seccion>
+          </Card>
 
-          <div className="flex justify-end gap-3">
-            <Link
-              to="/crear-oficio"
-              className="inline-flex h-12 items-center rounded-lg border border-guinda px-5 font-medium text-guinda hover:bg-guinda/5 transition-colors"
-            >
-              Cancelar
-            </Link>
-            <Button type="submit">Guardar</Button>
-          </div>
-        </form>
-      </Card>
+          <Card bodyClassName="p-5">
+            <SectionTitle icon={Calendar} title="Fechas y Término" />
+            <div className="flex flex-col gap-5">
+              <Input label="Fecha del documento" type="date" required />
+              
+              <div className="flex flex-col gap-1">
+                <Input label="Fecha de término (obligatorio)" type="date" required />
+                <span className="text-[11px] text-texto-secundario mt-1">Fecha perentoria para respuesta o resolución.</span>
+              </div>
+            </div>
+          </Card>
+
+          <Card bodyClassName="p-5 bg-guinda/5 border-guinda/20">
+            <p className="text-sm text-guinda-dark font-medium mb-4">
+              Al guardar, el oficio quedará disponible para revisión y seguimiento.
+            </p>
+            <Button type="submit" className="w-full justify-center" icon={<Save size={18} />}>
+              Guardar oficio
+            </Button>
+          </Card>
+        </div>
+      </form>
 
       <Toast mensaje={aviso} onClose={() => setAviso(null)} />
     </div>
