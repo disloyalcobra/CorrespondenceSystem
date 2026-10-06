@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Navigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, FileText, Calendar, MapPin, Save, UploadCloud } from "lucide-react";
 import Card from "../../components/Card";
@@ -6,7 +6,6 @@ import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
 import Select from "../../components/Select";
 import Toast from "../../components/Toast";
-import FileUploadField from "../../components/FileUploadField";
 import Button from "../../components/Button";
 import Avatar from "../../components/Avatar";
 import { TIPOS_DOCUMENTO } from "../../Data/tiposDocumento";

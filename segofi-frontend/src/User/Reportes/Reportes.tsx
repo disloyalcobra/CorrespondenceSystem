@@ -8,8 +8,7 @@ import {
   AlertCircle,
   BarChart3,
   CalendarRange,
-  Building2,
-  Filter
+  Building2
 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
