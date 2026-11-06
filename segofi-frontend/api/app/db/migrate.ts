@@ -134,3 +134,4 @@ export async function migrar(db: Database) {
     await db.run(sql.raw(statement));
   }
 }
+

@@ -135,3 +135,4 @@ describe("Base de datos: Schema, migraciones, seed e integridad", () => {
     ).rejects.toThrow();
   });
 });
+

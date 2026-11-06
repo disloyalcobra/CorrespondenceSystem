@@ -23,11 +23,11 @@
 ### Task 3: Autenticación (login/logout/me, cookie httpOnly, revalidación de activo)
 **Files:** crear `api/app/lib/auth.ts`, `api/app/routes/auth.ts`, `api/app/schemas/auth.ts`, test `api/__tests__/auth.test.ts`; registrar rutas en `api/index.ts`.
 **Interfaces (produce):** `hashPassword(pw): Promise<string>`, `verifyPassword(pw, hash): Promise<boolean>`, `crearSesionUsuario(c, usuario)` (firma cookie `sesion=httpOnly;SameSite=Lax` con JWT `{sub,rol_id,departamento_id}`), `requireUser(c): Promise<UsuarioSchema>` middleware + `requireRol(...ids)`; rutas `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`.
-- [ ] Paso 1: tests: login válido con hash bcryptjs → 200 + cookie httpOnly; password incorrecta → 401; `activo=false` → 401; `GET /api/auth/me` con cookie de usuario desactivado tras login → 401; login a rutas protegidas sin cookie → 401 (usar un endpoint protegido de prueba).
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar lib + rutas con DTOs zod; `me` y `requireUser` recargan el usuario desde DB y exigen `activo`.
-- [ ] Paso 4: `npm run test -- auth` PASS.
-- [ ] Paso 5: commit `feat(api): autenticación con JWT en cookie httpOnly y revalidación de estado activo`.
+- [x] Paso 1: tests: login válido con hash bcryptjs → 200 + cookie httpOnly; password incorrecta → 401; `activo=false` → 401; `GET /api/auth/me` con cookie de usuario desactivado tras login → 401; login a rutas protegidas sin cookie → 401 (usar un endpoint protegido de prueba).
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar lib + rutas con DTOs zod; `me` y `requireUser` recargan el usuario desde DB y exigen `activo`.
+- [x] Paso 4: `npm run test -- auth` PASS.
+- [x] Paso 5: commit `feat(api): autenticación con JWT en cookie httpOnly y revalidación de estado activo`.
 
 ### Task 4: Catálogos y administración de departamentos/tipos de documento
 **Files:** crear `api/app/routes/{departamentos,tiposDocumento}.ts`, `api/app/lib/auditoria.ts` (helper `registrar(db, {usuarioId,accion,entidad,entidadId,detalle})`), tests `api/__tests__/catalogos.test.ts`.

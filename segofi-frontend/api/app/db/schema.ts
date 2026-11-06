@@ -153,3 +153,4 @@ export const consecutivos = sqliteTable(
     uniqueIndex("idx_consecutivos_nombre_anio").on(table.nombre, table.anio),
   ],
 );
+
