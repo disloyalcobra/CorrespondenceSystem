@@ -26,7 +26,7 @@ const FILTROS: ("Todos" | EstadoOficio)[] = [
   "Enviado",
 ];
 
-const ESTADO_MAP: Record<number, any> = {
+const ESTADO_MAP: Record<number, EstadoOficio> = {
   1: "Recibido",
   2: "En seguimiento",
   3: "Turnado",

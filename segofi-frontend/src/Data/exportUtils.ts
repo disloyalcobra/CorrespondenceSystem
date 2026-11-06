@@ -9,7 +9,7 @@ import {
 } from "./analisisOficios";
 import { DEPARTAMENTOS_DEMO } from "./departamentos";
 
-const ESTADO_MAP: Record<number, any> = {
+const ESTADO_MAP: Record<number, string> = {
   1: "Recibido",
   2: "En seguimiento",
   3: "Turnado",

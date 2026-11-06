@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../Guards/useAuth";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import Avatar from "../../components/Avatar";
 import { NOTIFICACIONES } from "../../Data/notificaciones";
 import { notificacionesVisibles } from "../../Guards/alcance";
 
@@ -116,7 +115,7 @@ export default function Sidebar() {
     <div className="min-h-screen w-full flex bg-fondo relative">
       {/* Overlay para móviles */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -139,8 +138,8 @@ export default function Sidebar() {
               className="block w-full h-auto min-h-[48px]"
             />
           </button>
-          <button 
-            onClick={() => setSidebarOpen(false)} 
+          <button
+            onClick={() => setSidebarOpen(false)}
             className="md:hidden text-white/70 hover:text-white p-1"
           >
             <X size={24} />
@@ -187,37 +186,13 @@ export default function Sidebar() {
             </div>
           )}
         </nav>
-
-        {usuario && (
-          <div className="m-3 mt-0 flex items-center gap-3 rounded-xl bg-white/10 px-3 py-3 backdrop-blur-sm">
-            <Avatar nombre={usuario.nombre} size={38} />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold leading-tight truncate">
-                {usuario.nombre}
-              </p>
-              <p className="text-xs text-white/70 truncate">
-                {usuario.rol_id ? ETIQUETA_ROL[usuario.rol_id] : ""}
-              </p>
-            </div>
-          </div>
-        )}
-
-        <div className="px-3 pb-4">
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-lg text-white/90 hover:bg-white/10 hover:text-white transition-all"
-          >
-            <LogOut size={24} />
-            <span className="text-base font-normal">Cerrar sesión</span>
-          </button>
-        </div>
       </aside>
 
       {/* Contenido */}
       <div className="flex-1 flex flex-col bg-fondo-app min-w-0">
         {/* Topbar: Diseño SistemaCorrespondencia */}
         <header className="h-[60px] bg-guinda-dark text-white border-b-2 border-dorado shadow-md sticky top-0 z-40 px-4 md:px-7 flex items-center justify-between md:justify-end">
-          
+
           <div className="flex items-center md:hidden">
             <button
               onClick={() => setSidebarOpen(true)}

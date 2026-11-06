@@ -1,5 +1,6 @@
 import type { Oficio } from "../Data/oficio";
 import type { Usuario } from "./authTypes";
+import type { Notificacion } from "../Data/notificaciones";
 
 const ROLES_ADMIN = [2, 3]; // Admin, Directora
 
@@ -27,7 +28,7 @@ export function oficiosVisibles(usuario: Usuario | null, oficios: Oficio[]): Ofi
   return oficios.filter((o) => puedeVerOficio(usuario, o));
 }
 
-export function notificacionesVisibles(usuario: Usuario | null, notificaciones: any[]) {
+export function notificacionesVisibles(usuario: Usuario | null, notificaciones: Notificacion[]): Notificacion[] {
   if (!usuario) return [];
   if (tieneAccesoTotal(usuario)) return notificaciones;
   // TODO: filtrar por departamento cuando la notificación esté conectada a la BD real

@@ -6,7 +6,7 @@ import PageHeader from "../../components/PageHeader";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Select from "../../components/Select";
-import StatusBadge from "../../components/StatusBadge";
+import StatusBadge, { type EstadoOficio } from "../../components/StatusBadge";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 import { emitirRespuesta, enviarOficio, turnarOficio, agregarNota, useOficios } from "../../Data/oficiosStore";
@@ -20,7 +20,7 @@ type Accion = "turnar" | "nota" | "respuesta" | null;
 const ROLES_DIRECCION: number[] = [2, 3]; // Administrador, Directora
 const ROLES_DEPARTAMENTO: number[] = [2, 4]; // Administrador, JefeDepartamento
 
-const ESTADO_MAP: Record<number, any> = {
+const ESTADO_MAP: Record<number, EstadoOficio> = {
   1: "Recibido",
   2: "En seguimiento",
   3: "Turnado",

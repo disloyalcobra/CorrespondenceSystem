@@ -11,7 +11,7 @@ import {
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
-import StatusBadge from "../../components/StatusBadge";
+import StatusBadge, { type EstadoOficio } from "../../components/StatusBadge";
 import Button from "../../components/Button";
 import Toast from "../../components/Toast";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
@@ -24,7 +24,7 @@ import { useAuth } from "../../Guards/useAuth";
 import { oficiosVisibles, tieneAccesoTotal } from "../../Guards/alcance";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 
-const ESTADO_MAP: Record<number, any> = {
+const ESTADO_MAP: Record<number, EstadoOficio> = {
   1: "Recibido",
   2: "En seguimiento",
   3: "Turnado",
@@ -84,7 +84,7 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
     : [];
 
   const archivo = seleccionado?.adjuntos?.[0]?.nombre_archivo ?? "Sin archivo";
-  const estadoStr = seleccionado ? (ESTADO_MAP[seleccionado.estado_id] || "Desconocido") : "";
+  const estadoStr: EstadoOficio = seleccionado ? (ESTADO_MAP[seleccionado.estado_id] ?? "Recibido") : "Recibido";
 
   return (
     <div className="flex flex-col gap-5">

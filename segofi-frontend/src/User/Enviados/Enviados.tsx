@@ -5,7 +5,7 @@ import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
 import DataTable, { type Column } from "../../components/DataTable";
-import StatusBadge from "../../components/StatusBadge";
+import StatusBadge, { type EstadoOficio } from "../../components/StatusBadge";
 import { type Oficio } from "../../Data/oficio";
 import { useOficios } from "../../Data/oficiosStore";
 import { useAuth } from "../../Guards/useAuth";
@@ -14,7 +14,7 @@ import { TIPOS_DOCUMENTO } from "../../Data/tiposDocumento";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 import { Building2 } from "lucide-react";
 
-const ESTADO_MAP: Record<number, any> = {
+const ESTADO_MAP: Record<number, EstadoOficio> = {
   1: "Recibido",
   2: "En seguimiento",
   3: "Turnado",

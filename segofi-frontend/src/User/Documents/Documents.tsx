@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, FileText, Calendar, MapPin, Save, UploadCloud } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, MapPin, Save, UploadCloud, type LucideIcon } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
@@ -31,7 +31,7 @@ const PRIORIDAD_OPTS = [
   { value: "Extraurgente", label: "Extraurgente" },
 ];
 
-function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
+function SectionTitle({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
   return (
     <div className="flex items-center gap-2 mb-4 border-b border-borde pb-3">
       <Icon size={18} className="text-guinda" />
