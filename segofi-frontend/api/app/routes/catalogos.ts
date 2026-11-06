@@ -4,8 +4,9 @@ import { requireUser } from "../lib/auth";
 import type { Database } from "../db/client";
 import { getDb } from "../db/client";
 import * as schema from "../db/schema";
+import type { AppEnv } from "../types";
 
-const catalogosRouter = new Hono();
+const catalogosRouter = new Hono<AppEnv>();
 
 catalogosRouter.get("/", async (c) => {
   await requireUser(c);

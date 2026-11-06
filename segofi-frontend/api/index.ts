@@ -7,11 +7,13 @@ import departamentosRouter from "./app/routes/departamentos";
 import tiposDocumentoRouter from "./app/routes/tiposDocumento";
 import oficiosRouter from "./app/routes/oficios";
 import turnosRouter from "./app/routes/turnos";
+import salidasRouter from "./app/routes/salida";
 import type { Database } from "./app/db/client";
 import { getDb } from "./app/db/client";
+import type { AppEnv } from "./app/types";
 
-export function createApp(customDb?: Database): Hono {
-  const app = new Hono().basePath("/api");
+export function createApp(customDb?: Database): Hono<AppEnv> {
+  const app = new Hono<AppEnv>().basePath("/api");
 
   app.use("*", async (c, next) => {
     c.set("db", customDb ?? getDb());
@@ -30,6 +32,7 @@ export function createApp(customDb?: Database): Hono {
   app.route("/tipos-documento", tiposDocumentoRouter);
   app.route("/oficios", oficiosRouter);
   app.route("/oficios", turnosRouter);
+  app.route("/oficios", salidasRouter);
 
   return app;
 }

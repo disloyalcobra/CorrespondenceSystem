@@ -6,8 +6,9 @@ import { verifyPassword, crearSesionUsuario, limpiarSesion, requireUser } from "
 import type { Database } from "../db/client";
 import { getDb } from "../db/client";
 import * as schema from "../db/schema";
+import type { AppEnv } from "../types";
 
-const authRouter = new Hono();
+const authRouter = new Hono<AppEnv>();
 
 authRouter.post("/login", async (c) => {
   let bodyJson: unknown;

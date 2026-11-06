@@ -21,5 +21,14 @@ SegOfi es una aplicación de gestión de documentos/oficios de SECTUR. El fronte
 ## Comandos
 Desde `segofi-frontend/`: `npm run dev`, `npm run lint`, `npm run build`.
 
+## Registro de cambios (MEMORY.md)
+Al terminar cualquier tarea que modifique o cree archivos, **agrega una entrada en `MEMORY.md`** (en la raíz del proyecto) con:
+- Fecha y nombre de la tarea
+- Tabla de archivos nuevos y modificados con descripción breve
+- Resultado del build y tests (número de tests pasando)
+- Notas técnicas relevantes (errores encontrados y cómo se resolvieron)
+
+Usa la plantilla al final de `MEMORY.md` como referencia. No omitas este paso aunque la tarea sea pequeña.
+
 ## Nota de estado
 La lógica migrada desde SistemaCorrespondencia es una especificación y modelo de referencia. No se afirma que el backend ni la base de datos productiva estén implementados en este repositorio frontend.

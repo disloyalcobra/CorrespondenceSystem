@@ -7,8 +7,9 @@ import { departamentoSchema } from "../schemas/catalogos";
 import type { Database } from "../db/client";
 import { getDb } from "../db/client";
 import * as schema from "../db/schema";
+import type { AppEnv } from "../types";
 
-const departamentosRouter = new Hono();
+const departamentosRouter = new Hono<AppEnv>();
 
 // Listado de departamentos
 departamentosRouter.get("/", async (c) => {

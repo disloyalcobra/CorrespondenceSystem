@@ -9,6 +9,7 @@ import type { Database } from "../db/client";
 import { getDb } from "../db/client";
 import * as schema from "../db/schema";
 import type { UsuarioSchema } from "../schemas/auth";
+import type { AppEnv } from "../types";
 
 export const NOMBRE_COOKIE_SESION = "sesion";
 
@@ -31,7 +32,7 @@ export interface JwtPayloadSession {
 }
 
 export async function crearSesionUsuario(
-  c: Context,
+  c: Context<AppEnv>,
   usuario: { id: number; rolId: number; departamentoId: number | null },
 ): Promise<string> {
   const token = await new SignJWT({
@@ -54,13 +55,13 @@ export async function crearSesionUsuario(
   return token;
 }
 
-export function limpiarSesion(c: Context) {
+export function limpiarSesion(c: Context<AppEnv>) {
   deleteCookie(c, NOMBRE_COOKIE_SESION, {
     path: "/",
   });
 }
 
-export async function requireUser(c: Context): Promise<UsuarioSchema> {
+export async function requireUser(c: Context<AppEnv>): Promise<UsuarioSchema> {
   // Si ya fue resuelto en este ciclo de request, retornarlo
   const cached = c.get("user") as UsuarioSchema | undefined;
   if (cached) return cached;
@@ -116,14 +117,14 @@ export async function requireUser(c: Context): Promise<UsuarioSchema> {
   return usuario;
 }
 
-export function requireUserMiddleware(): MiddlewareHandler {
+export function requireUserMiddleware(): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     await requireUser(c);
     await next();
   };
 }
 
-export function requireRol(...rolesPermitidos: number[]): MiddlewareHandler {
+export function requireRol(...rolesPermitidos: number[]): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     const user = await requireUser(c);
     if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(user.rol_id)) {

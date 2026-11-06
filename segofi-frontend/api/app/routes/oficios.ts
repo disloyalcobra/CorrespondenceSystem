@@ -10,8 +10,9 @@ import { listarOficios, obtenerOficio } from "../lib/query";
 import type { Database } from "../db/client";
 import { getDb } from "../db/client";
 import * as schema from "../db/schema";
+import type { AppEnv } from "../types";
 
-const oficiosRouter = new Hono();
+const oficiosRouter = new Hono<AppEnv>();
 
 // Listado de oficios con alcance, filtros y paginación
 oficiosRouter.get("/", async (c) => {
@@ -137,5 +138,10 @@ oficiosRouter.post("/", async (c) => {
 
   return c.json({ oficio: oficioCreado }, 201);
 });
+
+import seguimientosRouter from "../routes/seguimientos";
+
+// Mount sub‑router for seguimientos and lecturas
+oficiosRouter.route("/:id/seguimientos", seguimientosRouter);
 
 export default oficiosRouter;

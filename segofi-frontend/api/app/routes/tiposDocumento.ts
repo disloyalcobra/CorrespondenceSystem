@@ -7,8 +7,9 @@ import { tipoDocumentoSchema } from "../schemas/catalogos";
 import type { Database } from "../db/client";
 import { getDb } from "../db/client";
 import * as schema from "../db/schema";
+import type { AppEnv } from "../types";
 
-const tiposDocumentoRouter = new Hono();
+const tiposDocumentoRouter = new Hono<AppEnv>();
 
 // Listado de tipos de documento
 tiposDocumentoRouter.get("/", async (c) => {

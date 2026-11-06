@@ -7,8 +7,9 @@ import { registrar } from "../lib/auditoria";
 import type { Database } from "../db/client";
 import { getDb } from "../db/client";
 import * as schema from "../db/schema";
+import type { AppEnv } from "../types";
 
-const turnosRouter = new Hono();
+const turnosRouter = new Hono<AppEnv>();
 
 const crearTurnoSchema = z.object({
   departamento_id: z.number().int().positive("Departamento destino requerido"),
@@ -102,3 +103,4 @@ turnosRouter.post("/:id/turnos", requireRol(2, 3), async (c) => {
 });
 
 export default turnosRouter;
+
