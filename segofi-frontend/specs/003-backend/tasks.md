@@ -14,11 +14,11 @@
 ### Task 2: Esquema DB, cliente Drizzle, migraciones y seed
 **Files:** crear `api/app/db/schema.ts`, `client.ts`, `migrate.ts`, `seed.ts`, `drizzle.config.ts`, `drizzle/`; test `api/__tests__/db.test.ts`.
 **Interfaces (produce):** `drizzle(client)` en `client.ts`; tablas `usuarios, roles, departamentos, tipos_documento, estados, oficios, adjuntos, oficio_turnos, oficio_seguimiento, oficio_lecturas, oficios_salidas, auditoria, consecutivos`.
-- [ ] Paso 1: test que aplica migraciones en `:memory:`, corre `seedAuditoria` y verifica: unique folio duplicado en `oficios` falla, FK inexistente falla, catálogos contienen estados 1..7 con nombres exactos de `logica-sistema.md`.
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar schema espejo del DBML (FKs, `unique` folios, `oficio_lecturas` con unicidad oficio/usuario/nombre acción `nombre`), migración drizzle-kit, seed de roles/estados/tipos y usuario admin con hash desde variables de entorno.
-- [ ] Paso 4: `npm run test -- db` PASS.
-- [ ] Paso 5: commit `feat(db): schema drizzle espejo del dbml + migraciones y seed`.
+- [x] Paso 1: test que aplica migraciones en `:memory:`, corre `seedAuditoria` y verifica: unique folio duplicado en `oficios` falla, FK inexistente falla, catálogos contienen estados 1..7 con nombres exactos de `logica-sistema.md`.
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar schema espejo del DBML (FKs, `unique` folios, `oficio_lecturas` con unicidad oficio/usuario/nombre acción `nombre`), migración drizzle-kit, seed de roles/estados/tipos y usuario admin con hash desde variables de entorno.
+- [x] Paso 4: `npm run test -- db` PASS.
+- [x] Paso 5: commit `feat(db): schema drizzle espejo del dbml + migraciones y seed`.
 
 ### Task 3: Autenticación (login/logout/me, cookie httpOnly, revalidación de activo)
 **Files:** crear `api/app/lib/auth.ts`, `api/app/routes/auth.ts`, `api/app/schemas/auth.ts`, test `api/__tests__/auth.test.ts`; registrar rutas en `api/index.ts`.
