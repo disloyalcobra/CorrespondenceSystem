@@ -40,3 +40,4 @@ oficiosRouter.get("/:id", async (c) => {
 });
 
 export default oficiosRouter;
+

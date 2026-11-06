@@ -50,11 +50,11 @@
 ### Task 6: `lib/folio.ts`
 **Files:** crear `api/app/lib/folio.ts`, test `api/__tests__/folio.test.ts`.
 **Interfaces (produce):** `reservarFolioOficio(tx, anio): Promise<string>` → `OFI-YYYY-NNNN`; `reservarFolioSalida(tx, anio): Promise<string>` → `SAL-YYYY-NNNN`; ambos hacen `UPSERT` en `consecutivos(nombre, anio)` + `UPDATE ... RETURNING ultimo` dentro de la transacción dada.
-- [ ] Paso 1: tests con 3 transacciones secuenciales → `OFI-2026-0001..0003`; 5 reservas `SAL` migradas secuencialmente → consecutivo `SAL` del año = 5, el callback fuerza el test a esperar cada transacción. Es la concurrencia real la que se pindea en Task 10 con transacciones `BEGIN IMMEDIATE` explícitas.
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar según firma (formatos fijos en `plan.md` decisión 3).
-- [ ] Paso 4: `npm run test -- folio` PASS.
-- [ ] Paso 5: commit `feat(api): reservas transaccionales de folio OFI- y SAL- por año`.
+- [x] Paso 1: tests con 3 transacciones secuenciales → `OFI-2026-0001..0003`; 5 reservas `SAL` migradas secuencialmente → consecutivo `SAL` del año = 5, el callback fuerza el test a esperar cada transacción. Es la concurrencia real la que se pindea en Task 10 con transacciones `BEGIN IMMEDIATE` explícitas.
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar según firma (formatos fijos en `plan.md` decisión 3).
+- [x] Paso 4: `npm run test -- folio` PASS.
+- [x] Paso 5: commit `feat(api): reservas transaccionales de folio OFI- y SAL- por año`.
 
 ### Task 7: Radicación de oficios (con adjuntos de metadatos y auditoría)
 **Files:** modificar `api/app/routes/oficios.ts` (POST), crear `api/app/schemas/radicar.ts`, test `api/__tests__/radicar.test.ts`.

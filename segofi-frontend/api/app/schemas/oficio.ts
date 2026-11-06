@@ -37,3 +37,4 @@ export interface Paginado<T> {
   pageSize: number;
   totalPages: number;
 }
+

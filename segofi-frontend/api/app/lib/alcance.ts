@@ -31,3 +31,4 @@ export function condicionAlcanceSQL(u: UsuarioSchema): SQL {
     )`,
   ) as SQL;
 }
+
