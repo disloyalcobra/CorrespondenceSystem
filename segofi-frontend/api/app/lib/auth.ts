@@ -132,3 +132,4 @@ export function requireRol(...rolesPermitidos: number[]): MiddlewareHandler {
     await next();
   };
 }
+

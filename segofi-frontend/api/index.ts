@@ -2,6 +2,9 @@ import { Hono } from "hono";
 import { handle } from "@hono/vercel";
 import { handleApiError } from "./app/lib/http";
 import authRouter from "./app/routes/auth";
+import catalogosRouter from "./app/routes/catalogos";
+import departamentosRouter from "./app/routes/departamentos";
+import tiposDocumentoRouter from "./app/routes/tiposDocumento";
 import type { Database } from "./app/db/client";
 import { getDb } from "./app/db/client";
 
@@ -20,6 +23,9 @@ export function createApp(customDb?: Database): Hono {
   });
 
   app.route("/auth", authRouter);
+  app.route("/catalogos", catalogosRouter);
+  app.route("/departamentos", departamentosRouter);
+  app.route("/tipos-documento", tiposDocumentoRouter);
 
   return app;
 }

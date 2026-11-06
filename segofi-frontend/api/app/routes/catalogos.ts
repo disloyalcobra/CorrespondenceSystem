@@ -1,0 +1,32 @@
+import { Hono } from "hono";
+import { eq } from "drizzle-orm";
+import { requireUser } from "../lib/auth";
+import type { Database } from "../db/client";
+import { getDb } from "../db/client";
+import * as schema from "../db/schema";
+
+const catalogosRouter = new Hono();
+
+catalogosRouter.get("/", async (c) => {
+  await requireUser(c);
+  const db: Database = c.get("db") ?? getDb();
+
+  const [estados, tiposDocumento, departamentos, roles] = await Promise.all([
+    db.select().from(schema.estados).orderBy(schema.estados.orden),
+    db.select().from(schema.tiposDocumento).where(eq(schema.tiposDocumento.activo, true)),
+    db.select().from(schema.departamentos).where(eq(schema.departamentos.activo, true)),
+    db.select().from(schema.roles).orderBy(schema.roles.id),
+  ]);
+
+  return c.json(
+    {
+      estados,
+      tiposDocumento,
+      departamentos,
+      roles,
+    },
+    200,
+  );
+});
+
+export default catalogosRouter;

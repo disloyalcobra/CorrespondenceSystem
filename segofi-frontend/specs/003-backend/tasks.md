@@ -32,11 +32,11 @@
 ### Task 4: Catálogos y administración de departamentos/tipos de documento
 **Files:** crear `api/app/routes/{departamentos,tiposDocumento}.ts`, `api/app/lib/auditoria.ts` (helper `registrar(db, {usuarioId,accion,entidad,entidadId,detalle})`), tests `api/__tests__/catalogos.test.ts`.
 **Interfaces (produce):** helper `registrar(...)` (usado por todas las mutaciones siguientes); `GET /api/catalogos` (estados, tipos, departamentos visibles para autenticados); CRUD `departamentos`/`tipos-documento` con `requireRol(2,3)` y desactivación lógica (`activo`).
-- [ ] Paso 1: tests: `GET /api/catalogos` sin sesión → 401; con rol 1 → 200 lista; `POST /api/departamentos` con rol 1 → 403; con rol 2 → 201 y existe fila en `auditoria`; `DELETE` desactiva (fila sigue existiendo, `activo=false`).
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar rutas + helper auditoría (escribe en transacción cuando la llamadora ya la abrió; acepta `db` normal).
-- [ ] Paso 4: `npm run test -- catalogos` PASS.
-- [ ] Paso 5: commit `feat(api): catálogos y administración de departamentos/tipos con auditoría y desactivación lógica`.
+- [x] Paso 1: tests: `GET /api/catalogos` sin sesión → 401; con rol 1 → 200 lista; `POST /api/departamentos` con rol 1 → 403; con rol 2 → 201 y existe fila en `auditoria`; `DELETE` desactiva (fila sigue existiendo, `activo=false`).
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar rutas + helper auditoría (escribe en transacción cuando la llamadora ya la abrió; acepta `db` normal).
+- [x] Paso 4: `npm run test -- catalogos` PASS.
+- [x] Paso 5: commit `feat(api): catálogos y administración de departamentos/tipos con auditoría y desactivación lógica`.
 
 ### Task 5: Alcance server-side y listado/detalle de oficios
 **Files:** crear `api/app/lib/alcance.ts`, `api/app/lib/query.ts` (helpers paginación/filtros), `api/app/routes/oficios.ts` (solo GET list y GET :id), `api/app/schemas/oficio.ts` (DTO listado/detalle), test `api/__tests__/alcance.test.ts`.

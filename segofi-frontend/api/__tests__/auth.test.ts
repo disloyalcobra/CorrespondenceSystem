@@ -124,3 +124,4 @@ describe("Autenticación (/api/auth)", () => {
     expect(setCookie).toBeTruthy();
   });
 });
+

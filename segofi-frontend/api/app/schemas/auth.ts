@@ -18,3 +18,4 @@ export const usuarioSchema = z.object({
 });
 
 export type UsuarioSchema = z.infer<typeof usuarioSchema>;
+
