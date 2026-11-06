@@ -185,3 +185,4 @@ describe("Radicación de oficios (POST /api/oficios)", () => {
     expect(body2.oficio.folio).toBe("OFI-2026-0002");
   });
 });
+

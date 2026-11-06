@@ -68,11 +68,11 @@
 ### Task 8: Turnado de oficios (transaccional)
 **Files:** crear `api/app/routes/turnos.ts`, test `api/__tests__/turnos.test.ts`.
 **Interfaces (consume:** `auditoria`**):** `POST /api/oficios/:id/turnos` con `requireRol(2,3)`; dentro de una transacción: inserta `oficio_turnos` (`turnado_por_usuario_id`, `turnado_en=now`), d Cambia `estado_id` a 2 (Turnado) solo si el estado actual lo permite (1 Pendiente; estados terminales → 409), registra auditoría `turnar`.
-- [ ] Paso 1: tests: rol 2 turna oficio Pendiente → 201, estado=Turnado, fila turno con `recibido_en=null`; rol 1 → 403; turnar oficio Enviado → 409; turnar oficio inexistente o fuera de alcance de rol 1 → 404; auditoría presente.
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar con `db.transaction`.
-- [ ] Paso 4: `npm run test -- turnos` PASS.
-- [ ] Paso 5: commit `feat(api): turnado transaccional con cambio de estado y auditoría`.
+- [x] Paso 1: tests: rol 2 turna oficio Pendiente → 201, estado=Turnado, fila turno con `recibido_en=null`; rol 1 → 403; turnar oficio Enviado → 409; turnar oficio inexistente o fuera de alcance de rol 1 → 404; auditoría presente.
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar con `db.transaction`.
+- [x] Paso 4: `npm run test -- turnos` PASS.
+- [x] Paso 5: commit `feat(api): turnado transaccional con cambio de estado y auditoría`.
 
 ### Task 9: Seguimiento, respuestas y lecturas
 **Files:** crear `api/app/routes/seguimiento.ts`, `lecturas.ts`, test `api/__tests__/seguimiento.test.ts`.

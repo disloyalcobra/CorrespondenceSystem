@@ -26,3 +26,4 @@ export const radicarOficioSchema = z.object({
 });
 
 export type RadicarOficioInput = z.infer<typeof radicarOficioSchema>;
+

@@ -6,6 +6,7 @@ import catalogosRouter from "./app/routes/catalogos";
 import departamentosRouter from "./app/routes/departamentos";
 import tiposDocumentoRouter from "./app/routes/tiposDocumento";
 import oficiosRouter from "./app/routes/oficios";
+import turnosRouter from "./app/routes/turnos";
 import type { Database } from "./app/db/client";
 import { getDb } from "./app/db/client";
 
@@ -28,6 +29,7 @@ export function createApp(customDb?: Database): Hono {
   app.route("/departamentos", departamentosRouter);
   app.route("/tipos-documento", tiposDocumentoRouter);
   app.route("/oficios", oficiosRouter);
+  app.route("/oficios", turnosRouter);
 
   return app;
 }
