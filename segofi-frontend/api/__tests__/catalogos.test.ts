@@ -205,3 +205,4 @@ describe("Catálogos y administración de departamentos / tipos de documento", (
     expect(tipoDb.activo).toBe(false);
   });
 });
+

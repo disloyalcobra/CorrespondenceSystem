@@ -127,3 +127,4 @@ departamentosRouter.delete("/:id", requireRol(2, 3), async (c) => {
 });
 
 export default departamentosRouter;
+

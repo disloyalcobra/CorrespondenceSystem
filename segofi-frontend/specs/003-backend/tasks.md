@@ -41,11 +41,11 @@
 ### Task 5: Alcance server-side y listado/detalle de oficios
 **Files:** crear `api/app/lib/alcance.ts`, `api/app/lib/query.ts` (helpers paginación/filtros), `api/app/routes/oficios.ts` (solo GET list y GET :id), `api/app/schemas/oficio.ts` (DTO listado/detalle), test `api/__tests__/alcance.test.ts`.
 **Interfaces (produce):** `tieneAccesoTotal(u): boolean` (roles 2/3), `condicionAlcanceSQL(u): SQL` (oficios con `departamento_destino_inicial_id = u.departamento_id` O participación en `oficio_seguimiento` u `oficio_turnos` del departamento), `listarOficios(u, filtros): Promise<Paginado<OficioResumen>>`, `obtenerOficio(u, id): Promise<OficioDetalle | null>` — el detalle incluye datos del oficio, línea de tiempo (turnos, seguimientos), lecturas, adjuntos y salida si existe.
-- [ ] Paso 1: seed de prueba con oficios en 2 departamentos; tests: rol 1 lista solo su depto y participaciones; rol 3 lista todo; filtro por `estado_id`/folio/asunto/rango de fechas funciona; paginación (`page`, `pageSize` con default 20) server-side; detalle fuera de alcance → 404 (no 403, para no revelar existencia).
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar con WHERE en SQL (nunca filtrar en memoria).
-- [ ] Paso 4: `npm run test -- alcance` PASS.
-- [ ] Paso 5: commit `feat(api): listado y detalle de oficios con alcance, filtros y paginación en servidor`.
+- [x] Paso 1: seed de prueba con oficios en 2 departamentos; tests: rol 1 lista solo su depto y participaciones; rol 3 lista todo; filtro por `estado_id`/folio/asunto/rango de fechas funciona; paginación (`page`, `pageSize` con default 20) server-side; detalle fuera de alcance → 404 (no 403, para no revelar existencia).
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar con WHERE en SQL (nunca filtrar en memoria).
+- [x] Paso 4: `npm run test -- alcance` PASS.
+- [x] Paso 5: commit `feat(api): listado y detalle de oficios con alcance, filtros y paginación en servidor`.
 
 ### Task 6: `lib/folio.ts`
 **Files:** crear `api/app/lib/folio.ts`, test `api/__tests__/folio.test.ts`.

@@ -30,3 +30,4 @@ catalogosRouter.get("/", async (c) => {
 });
 
 export default catalogosRouter;
+
