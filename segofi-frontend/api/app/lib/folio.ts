@@ -57,3 +57,4 @@ export async function reservarFolioSalida(
   const padding = String(consecutivo).padStart(4, "0");
   return `SAL-${anio}-${padding}`;
 }
+

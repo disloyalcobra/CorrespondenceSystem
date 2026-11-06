@@ -93,3 +93,4 @@ describe("lib/folio: Reservas transaccionales de folio por año", () => {
     expect(s2026).toBe("SAL-2026-0001");
   });
 });
+

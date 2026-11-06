@@ -59,11 +59,11 @@
 ### Task 7: Radicación de oficios (con adjuntos de metadatos y auditoría)
 **Files:** modificar `api/app/routes/oficios.ts` (POST), crear `api/app/schemas/radicar.ts`, test `api/__tests__/radicar.test.ts`.
 **Interfaces (consume:** `folio.ts`, `auditoria.ts`**):** `POST /api/oficios` crea oficio estado Pendiente (estado_id 1), `remitente_usuario_id = usuario actual`, `origen_usuario_id = usuario actual`, asigna `departamento_destino_inicial_id` en el body.
-- [ ] Paso 1: tests: con datos válidos devuelve 201 con folio y estado Pendiente; falta `objeto`/`asunto` → 422 por validación zod; `departamento_destino` inexistente → 422; `fecha_documento` inválida → 422; radicar en secuencia reserva folios consecutivos; existe fila de `auditoria` con accion `radicar`.
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar con `db.transaction` (folio + insert + auditoría).
-- [ ] Paso 4: `npm run test -- radicar` PASS.
-- [ ] Paso 5: commit `feat(api): radicar oficio transaccional con folio de entrada y auditoría`.
+- [x] Paso 1: tests: con datos válidos devuelve 201 con folio y estado Pendiente; falta `objeto`/`asunto` → 422 por validación zod; `departamento_destino` inexistente → 422; `fecha_documento` inválida → 422; radicar en secuencia reserva folios consecutivos; existe fila de `auditoria` con accion `radicar`.
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar con `db.transaction` (folio + insert + auditoría).
+- [x] Paso 4: `npm run test -- radicar` PASS.
+- [x] Paso 5: commit `feat(api): radicar oficio transaccional con folio de entrada y auditoría`.
 
 ### Task 8: Turnado de oficios (transaccional)
 **Files:** crear `api/app/routes/turnos.ts`, test `api/__tests__/turnos.test.ts`.
