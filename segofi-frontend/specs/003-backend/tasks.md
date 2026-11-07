@@ -77,29 +77,29 @@
 ### Task 9: Seguimiento, respuestas y lecturas
 **Files:** crear `api/app/routes/seguimiento.ts`, `lecturas.ts`, test `api/__tests__/seguimiento.test.ts`.
 **Interfaces (consume:** `auditoria`**):** `POST /api/oficios/:id/seguimientos` con tipos zod `{tipo: 'NOTA' | 'AVANCE' | 'RESPUESTA', contenido, decidirConclusion?: boolean}`; NOTA/AVANCE si el estado es 2 o 3 → estado pasa a 3 (En proceso); RESPUESTA del usuario autorizado (departamento destino o roles 2/3) con `decidirConclusion` → estado 4 (Respondido) o 5 (Concluido); oficio Enviado → 409; `POST /api/oficios/:id/lecturas` inserta lectura o devuelve la existente (unicidad lógica); auditoría `responder`/`lectura`.
-- [ ] Paso 1: tests: nota en oficio Turnado → estado 3; respuesta → estado 4 con `decidirConclusion=false` y 5 con true; segunda lectura del mismo usuario devuelve la misma fila (no duplica); nota en oficio Enviado → 409; rol 1 nota en oficio fuera de alcance → 404; auditoría registra actor y accion.
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar transaccional seguimiento+estado+auditoría.
-- [ ] Paso 4: `npm run test -- seguimiento` PASS.
-- [ ] Paso 5: commit `feat(api): seguimientos, respuestas con decisión de conclusión y lecturas únicas`.
+- [x] Paso 1: tests: nota en oficio Turnado → estado 3; respuesta → estado 4 con `decidirConclusion=false` y 5 con true; segunda lectura del mismo usuario devuelve la misma fila (no duplica); nota en oficio Enviado → 409; rol 1 nota en oficio fuera de alcance → 404; auditoría registra actor y accion.
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar transaccional seguimiento+estado+auditoría.
+- [x] Paso 4: `npm run test -- seguimiento` PASS.
+- [x] Paso 5: commit `feat(api): seguimientos, respuestas con decisión de conclusión y lecturas únicas`.
 
 ### Task 10: Salidas — envío atómico `SAL-AAAA-XXXX`
 **Files:** crear `api/app/routes/salidas.ts`, test `api/__tests__/salidas.test.ts`.
 **Interfaces (consume:** `folio.ts` (SAL), `auditoria`**):** `POST /api/oficios/:id/salida` con `requireRol(2,3)`; en transacción `BEGIN IMMEDIATE`: verifica que oficio existe, no tiene salida (`oficios_salidas.oficio_id` unique), cambia estado a 7 (Enviado), reserva folio SAL del año, inserta salida y auditoría.
-- [ ] Paso 1: tests: envío válido → 201 `{folio:'SAL-2026-0001'}`, estado 7; segundo envío del mismo oficio → 409; envíos concurrentes (`Promise.all` de 3 sobre oficios distintos) → folios únicos consecutivos; doble envío concurrente del mismo oficio → exactamente una 201; intentar turnar/nota sobre oficio Enviado → 409 (solo lectura).
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar con `db.transaction` en modo exclusivo; tras Enviado el oficio queda en solo lectura (turnos y seguimientos rechazados con 409).
-- [ ] Paso 4: `npm run test -- salidas` PASS.
-- [ ] Paso 5: commit `feat(api): envío transaccional con folio SAL único y oficio en solo lectura`.
+- [x] Paso 1: tests: envío válido → 201 `{folio:'SAL-2026-0001'}`, estado 7; segundo envío del mismo oficio → 409; envíos concurrentes (`Promise.all` de 3 sobre oficios distintos) → folios únicos consecutivos; doble envío concurrente del mismo oficio → exactamente una 201; intentar turnar/nota sobre oficio Enviado → 409 (solo lectura).
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar con `db.transaction` en modo exclusivo; tras Enviado el oficio queda en solo lectura (turnos y seguimientos rechazados con 409).
+- [x] Paso 4: `npm run test -- salidas` PASS.
+- [x] Paso 5: commit `feat(api): envío transaccional con folio SAL único y oficio en solo lectura`.
 
 ### Task 11: Administración de usuarios (CRUD, desactivación, cambio de contraseña)
 **Files:** crear `api/app/routes/usuarios.ts`, test `api/__tests__/usuarios.test.ts`; nueva migración en `drizzle/` solo si se requiere.
 **Interfaces (consume:** `auth.ts`, `auditoria`**):** `GET/POST/PUT /api/usuarios` con `requireRol(2,3)`; `PUT /api/usuarios/:id/password` (auto-servicio, exige password actual); desactivación solo lógica (`activo=false`), `password` siempre hasheado con bcryptjs y nunca devuelto (DTO sin hash).
-- [ ] Paso 1: tests: listado con DTOs sin `password_hash` en la respuesta; desactivar usuario con sesiones activas → siguiente request con su cookie → 401; cambiar contraseña exige la actual; rol 1 en listado → 403; auditoría `usuario_*`.
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar las rutas con DTOs zod.
-- [ ] Paso 4: `npm run test -- usuarios` PASS.
-- [ ] Paso 5: commit `feat(api): administración de usuarios con hash bcryptjs, desactivación lógica y auditoría`.
+- [x] Paso 1: tests: listado con DTOs sin `password_hash` en la respuesta; desactivar usuario con sesiones activas → siguiente request con su cookie → 401; cambiar contraseña exige la actual; rol 1 en listado → 403; auditoría `usuario_*`.
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar las rutas con DTOs zod.
+- [x] Paso 4: `npm run test -- usuarios` PASS.
+- [x] Paso 5: commit `feat(api): administración de usuarios con hash bcryptjs, desactivación lógica y auditoría`.
 
 ### Task 12: Adjuntos en Vercel Blob con descarga controlada
 **Files:** crear `api/app/lib/blob.ts`, `api/app/routes/adjuntos.ts`, test `api/__tests__/adjuntos.test.ts` (mock de blob con doble de estratégia inyectable).

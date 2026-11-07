@@ -53,6 +53,45 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 
 ---
 
+## 2026-11-07 — Task 11: Administración de usuarios (CRUD, desactivación, cambio de contraseña)
+
+### Cambios realizados
+
+#### Nuevos archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `api/app/schemas/usuario.ts` | Schemas Zod: `crearUsuarioSchema`, `actualizarUsuarioSchema` y `cambiarPasswordSchema` |
+| `api/app/routes/usuarios.ts` | Router con endpoints `GET /`, `POST /`, `PUT /:id` y `PUT /:id/password` con auditoría |
+| `api/__tests__/usuarios.test.ts` | Suite con 5 tests verificando DTOs seguros, RBAC (403), desactivación lógica (401 subsiguiente), cambio de contraseña y auditoría |
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `api/index.ts` | Monta `usuariosRouter` en `/usuarios` |
+| `specs/003-backend/tasks.md` | Marcadas Tasks 9, 10 y 11 como completadas |
+
+### Resultado
+- **Build:** ✅ `npm run build` sin errores TypeScript ni de bundling
+- **Tests:** ✅ 56 tests pasando (11 suites)
+  - `folio.test.ts` — 3 ✅
+  - `health.test.ts` — 1 ✅
+  - `db.test.ts` — 5 ✅
+  - `auth.test.ts` — 6 ✅
+  - `seguimientos.test.ts` — 8 ✅
+  - `radicar.test.ts` — 5 ✅
+  - `turnos.test.ts` — 4 ✅
+  - `catalogos.test.ts` — 6 ✅
+  - `alcance.test.ts` — 6 ✅
+  - `salidas.test.ts` — 7 ✅
+  - `usuarios.test.ts` — 5 ✅ (nuevo)
+
+### Notas técnicas
+- En Drizzle `values()` para campos opcionales en SQLite, el tipado no tolera `undefined`; se normalizó `departamento_id ?? null as number | null`.
+- Se validó que las respuestas DTO nunca expongan `passwordHash` ni contraseñas en claro.
+- La desactivación de usuario valida que las sesiones preexistentes sean invalidadas automáticamente en `requireUser` retornando HTTP 401.
+
+---
+
 ## Plantilla para próximas entradas
 
 ```
