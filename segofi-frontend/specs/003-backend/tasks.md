@@ -104,11 +104,11 @@
 ### Task 12: Adjuntos en Vercel Blob con descarga controlada
 **Files:** crear `api/app/lib/blob.ts`, `api/app/routes/adjuntos.ts`, test `api/__tests__/adjuntos.test.ts` (mock de blob con doble de estratégia inyectable).
 **Interfaces (produce:** `subirAdjunto(c, archivo): Promise<{id, url}`; `obtenerUrlDescarga(u, id): Promise<string|401|404>`) ****consume:** `alcance`.
-- [ ] Paso 1: tests: subir archivo a oficio en alcance → fila metadatos (nombre, url) y 201; `GET /api/adjuntos/:id/url` con sesión en alcance → 200 con URL; sin sesión → 401; sin alcance o inexistente → 404 (sin URL de Blob).
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar con `@vercel/blob` (`put` en subida; URL firmada en descarga), inyectando el cliente blob para pruebas y despliegue real.
-- [ ] Paso 4: `npm run test -- adjuntos` PASS.
-- [ ] Paso 5: commit `feat(api): adjuntos con Vercel Blob, metadatos en DB y descarga con control de alcance`.
+- [x] Paso 1: tests: subir archivo a oficio en alcance → fila metadatos (nombre, url) y 201; `GET /api/adjuntos/:id/url` con sesión en alcance → 200 con URL; sin sesión → 401; sin alcance o inexistente → 404 (sin URL de Blob).
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar con `@vercel/blob` (`put` en subida; URL firmada en descarga), inyectando el cliente blob para pruebas y despliegue real.
+- [x] Paso 4: `npm run test -- adjuntos` PASS.
+- [x] Paso 5: commit `feat(api): adjuntos con Vercel Blob, metadatos en DB y descarga con control de alcance`.
 
 ### Task 13: Auditoría, reportes, exportación y notificaciones
 **Files:** crear `api/app/routes/{auditoria,reportes,notificaciones}.ts`, test `api/__tests__/auditoria-reportes.test.ts`.

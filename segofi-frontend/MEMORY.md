@@ -92,6 +92,45 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 
 ---
 
+## 2026-11-07 — Task 12: Adjuntos en Vercel Blob con descarga controlada
+
+### Cambios realizados
+
+#### Nuevos archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `api/app/lib/blob.ts` | Abstracción de Vercel Blob con `StorageUploader` y `MockBlobUploader` para tests |
+| `api/app/routes/adjuntos.ts` | Endpoints `POST /oficios/:id/adjuntos` y `GET /adjuntos/:id/url` con validación de alcance |
+| `api/__tests__/adjuntos.test.ts` | Suite con 4 tests para subida, descarga controlada, error 401 sin sesión y 404 fuera de alcance |
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `api/index.ts` | Monta `oficiosAdjuntosRouter` en `/oficios` y `adjuntosRouter` en `/adjuntos` |
+| `specs/003-backend/tasks.md` | Marcada Task 12 como completada |
+
+### Resultado
+- **Build:** ✅ `npm run build` sin errores TypeScript ni de bundling
+- **Tests:** ✅ 60 tests pasando (12 suites)
+  - `folio.test.ts` — 3 ✅
+  - `health.test.ts` — 1 ✅
+  - `db.test.ts` — 5 ✅
+  - `auth.test.ts` — 6 ✅
+  - `seguimientos.test.ts` — 8 ✅
+  - `radicar.test.ts` — 5 ✅
+  - `turnos.test.ts` — 4 ✅
+  - `catalogos.test.ts` — 6 ✅
+  - `alcance.test.ts` — 6 ✅
+  - `salidas.test.ts` — 7 ✅
+  - `usuarios.test.ts` — 5 ✅
+  - `adjuntos.test.ts` — 4 ✅ (nuevo)
+
+### Notas técnicas
+- Se utilizó la interfaz `StorageUploader` para desacoplar el almacenamiento de Vercel Blob en pruebas locales y tests con SQLite en memoria.
+- Se implementó control de alcance en la descarga (`GET /api/adjuntos/:id/url`) ocultando la existencia del adjunto (`404`) si el usuario no tiene acceso al oficio padre.
+
+---
+
 ## Plantilla para próximas entradas
 
 ```
