@@ -4,7 +4,7 @@ export const crearUsuarioSchema = z.object({
     nombre: z.string().min(1, "El nombre es requerido"),
     email: z.string().email("Correo electronico inválido"),
     password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
-    rol_id: z.number().int().positive().nullable().optional(),
+    rol_id: z.number().int().positive("Rol inválido"),
     departamento_id: z.number().int().positive().nullable().optional(),
 });
 
