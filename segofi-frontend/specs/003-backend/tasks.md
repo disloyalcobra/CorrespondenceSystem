@@ -113,11 +113,11 @@
 ### Task 13: Auditoría, reportes, exportación y notificaciones
 **Files:** crear `api/app/routes/{auditoria,reportes,notificaciones}.ts`, test `api/__tests__/auditoria-reportes.test.ts`.
 **Interfaces (consume:** `alcance`**):** `GET /api/auditoria?entidad=&usuario_id=&page=` con `requireRol(2,3)` (orden cronológico desc); `GET /api/reportes/resumen` (contadores por estado 1..7 y vencidos calculados desde `termino < hoy` sin estado terminal, respetando alcance) y `GET /api/reportes/export?formato=csv` en stream; `GET /api/notificaciones` devuelve derivados de turnos/lecturas del alcance del usuario.
-- [ ] Paso 1: tests: auditoría con filtros, rol 1 → 403; reporte cuenta vencidos sin pisar estados terminales; export CSV respeta alcance; notificaciones de rol 1 excluyen oficios de otro departamento.
-- [ ] Paso 2: verificar fallo.
-- [ ] Paso 3: implementar.
-- [ ] Paso 4: `npm run test -- auditoria` PASS.
-- [ ] Paso 5: commit `feat(api): bitácora, reportes/exportación y notificaciones con alcance en servidor`.
+- [x] Paso 1: tests: auditoría con filtros, rol 1 → 403; reporte cuenta vencidos sin pisar estados terminales; export CSV respeta alcance; notificaciones de rol 1 excluyen oficios de otro departamento.
+- [x] Paso 2: verificar fallo.
+- [x] Paso 3: implementar.
+- [x] Paso 4: `npm run test -- auditoria` PASS.
+- [x] Paso 5: commit `feat(api): bitácora, reportes/exportación y notificaciones con alcance en servidor`.
 
 ### Task 14: Frontend — `apiClient` + authService integrado a `AuthContext`
 **Files:** crear `src/services/apiClient.ts`, `src/services/authService.ts`; modificar `src/Guards/AuthContext.tsx` (login/logout reales, `cargando` inicial), `src/Guards/testUsers.ts` se retira del flujo de login (sin borrar archivo); `vite.config.ts` proxy `/api` en dev).

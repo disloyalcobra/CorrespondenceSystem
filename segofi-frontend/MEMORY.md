@@ -131,6 +131,48 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 
 ---
 
+## 2026-11-09 — Task 13: Auditoría, reportes, exportación y notificaciones
+
+### Cambios realizados
+
+#### Nuevos archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `api/app/routes/auditoria.ts` | Endpoint `GET /api/auditoria` con protección `requireRol(2, 3)`, paginación y filtros por entidad y usuario |
+| `api/app/routes/reportes.ts` | Endpoints `GET /api/reportes/resumen` (contadores de estado y vencidos excluyendo estados terminales) y `GET /api/reportes/export?formato=csv` |
+| `api/app/routes/notificaciones.ts` | Endpoint `GET /api/notificaciones` derivando oficios no leídos por el usuario dentro de su alcance |
+| `api/__tests__/auditoria-reportes.test.ts` | Suite con 4 tests para RBAC en auditoría (403), cálculo de vencidos, export CSV y aislamiento por departamento |
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `api/index.ts` | Monta routers en `/auditoria`, `/reportes` y `/notificaciones` |
+| `specs/003-backend/tasks.md` | Marcada Task 13 como completada |
+
+### Resultado
+- **Build:** ✅ `npm run build` sin errores TypeScript ni de bundling
+- **Tests:** ✅ 64 tests pasando (13 suites)
+  - `folio.test.ts` — 3 ✅
+  - `health.test.ts` — 1 ✅
+  - `db.test.ts` — 5 ✅
+  - `auth.test.ts` — 6 ✅
+  - `seguimientos.test.ts` — 8 ✅
+  - `radicar.test.ts` — 5 ✅
+  - `turnos.test.ts` — 4 ✅
+  - `catalogos.test.ts` — 6 ✅
+  - `alcance.test.ts` — 6 ✅
+  - `salidas.test.ts` — 7 ✅
+  - `usuarios.test.ts` — 5 ✅
+  - `adjuntos.test.ts` — 4 ✅
+  - `auditoria-reportes.test.ts` — 4 ✅ (nuevo)
+
+### Notas técnicas
+- En `auditoria.ts` se utilizó el middleware `requireRol(2, 3)` para rechazar solicitudes de usuarios operativos con `403`.
+- En `reportes.ts` se excluyen estados terminales (5: Concluido, 6: Cancelado, 7: Enviado) al computar la métrica de oficios vencidos.
+- En `notificaciones.ts` se evalúa mediante `notExists` sobre `oficio_lecturas` correlacionado al usuario actual.
+
+---
+
 ## Plantilla para próximas entradas
 
 ```
