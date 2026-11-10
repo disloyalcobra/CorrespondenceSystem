@@ -1,19 +1,13 @@
 import { createContext } from "react";
+import type { UsuarioSesion } from "../services/authService";
 
-export interface Usuario {
-  id: number;
-  nombre: string;
-  email: string;
-  password_hash: string;
-  rol_id: number;
-  departamento_id: number;
-  activo: boolean;
-}
+export type Usuario = UsuarioSesion;
 
 export interface AuthContextValue {
   usuario: Usuario | null;
-  login: (usuario: Usuario) => void;
-  logout: () => void;
+  cargando: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

@@ -173,6 +173,33 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 
 ---
 
+## 2026-11-09 — Task 14: Frontend — apiClient + authService integrado a AuthContext
+
+### Cambios realizados
+
+#### Nuevos archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `src/services/apiClient.ts` | Cliente HTTP centralizado (`fetch`) con `credentials: "include"`, manejo de query params, tipado de respuestas, soporte Blob/CSV y clase `ApiError` compatible con `erasableSyntaxOnly` |
+| `src/services/authService.ts` | Servicio de autenticación con `login`, `logout` y `me()` utilizando el DTO seguro `UsuarioSesion` sin contraseñas |
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `vite.config.ts` | Configurado proxy para desarrollo reenviando `/api` a `http://localhost:3000` |
+| `src/Guards/authTypes.ts` | Actualizado tipo `Usuario` a `UsuarioSesion` y agregada bandera `cargando: boolean` |
+| `src/Guards/AuthContext.tsx` | Verificación de sesión al montar vía `authService.me()` y `login`/`logout` conectados a la API real |
+| `src/Guards/RoleGuard.tsx` | Muestra spinner de carga mientras `cargando === true` para evitar redirecciones prematuras a `/login` |
+| `src/Login/Login.tsx` | Formulario conectado al `login()` asíncrono real con manejo de `ApiError` |
+| `specs/003-backend/tasks.md` | Marcada Task 14 como completada |
+
+### Resultado
+- **Lint:** ✅ `npm run lint` pasa con 0 errores y 0 advertencias
+- **Build:** ✅ `npm run build` (`tsc -b && vite build`) exitoso
+- **Tests:** ✅ 64 tests pasando (13 suites)
+
+---
+
 ## Plantilla para próximas entradas
 
 ```

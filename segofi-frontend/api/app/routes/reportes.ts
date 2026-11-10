@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { and, desc, eq, lt, notInArray, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { requireUser } from "../lib/auth";
 import { getDb } from "../db/client";
 import type { Database } from "../db/client";

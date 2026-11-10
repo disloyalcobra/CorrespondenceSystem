@@ -17,25 +17,23 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    const usuario = testUsers.find(
-      (u) =>
-        u.email === correo.trim().toLowerCase() && u.passwordRaw === contrasena,
-    );
-
-    if (!usuario) {
-      setError("Correo o contraseña incorrectos.");
-      return;
-    }
-
-    setCargando(true);
-    setTimeout(() => {
-      login({ ...usuario, id: Math.floor(Math.random() * 1000), password_hash: "" });
+    setCargando(true); // Activa el botón en estado de carga
+    try {
+      // Llamamos a nuestro login real que conecta con la API
+      await login(correo.trim(), contrasena);
+      // Si tuvo éxito, navegamos al dashboard
       navigate("/dashboard");
-    }, 700);
+    } catch (err: unknown) {
+      // Si las credenciales son incorrectas o el servidor falló, capturamos el mensaje
+      const msg = err instanceof Error ? err.message : "Error al iniciar sesión";
+      setError(msg);
+    } finally {
+      // Apagamos el estado de carga del botón
+      setCargando(false);
+    }
   };
 
   const rellenar = (u: TestUser) => {

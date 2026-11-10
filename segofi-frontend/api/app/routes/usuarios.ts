@@ -12,7 +12,6 @@ import {
     actualizarUsuarioSchema,
     cambiarPasswordSchema,
 } from "../schemas/usuario";
-import { da, th } from "zod/v4/locales";
 
 const usuariosRouter = new Hono<AppEnv>();
 

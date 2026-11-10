@@ -14,8 +14,6 @@ describe("Task 12 — Adjuntos con Vercel Blob y control de alcance", () => {
     let app: ReturnType<typeof createApp>;
 
     let cookieAdmin: string;
-    let cookieOp1: string;
-    let cookieOp2: string;
     let cookieOpDept1: string;
     let cookieOpDept2: string;
 

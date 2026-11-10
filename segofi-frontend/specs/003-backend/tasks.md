@@ -122,10 +122,10 @@
 ### Task 14: Frontend — `apiClient` + authService integrado a `AuthContext`
 **Files:** crear `src/services/apiClient.ts`, `src/services/authService.ts`; modificar `src/Guards/AuthContext.tsx` (login/logout reales, `cargando` inicial), `src/Guards/testUsers.ts` se retira del flujo de login (sin borrar archivo); `vite.config.ts` proxy `/api` en dev).
 **Interfaces (consume:** endpoints de Task 3/11**):** `apiClient.get/post/put/del` tipados con `ApiError` (mensaje del backend); `authService.login(email, pw): Promise<UsuarioSesion>`, `logout()`, `me()`; `UsuarioSesion` sin `password_hash`.
-- [ ] Paso 1: implementar servicios + AuthContext con `me()` al montar (sustituye sesión de demostración).
-- [ ] Paso 2: `npm run lint` y `npm run build` PASS (sin errores de TS).
-- [ ] Paso 3: verificación manual dev: `npm run dev:api` + `npm run dev` → login con usuario seed → redirige a inicio; logout limpia cookie.
-- [ ] Paso 4: commit `feat(front): servicios tipados + AuthContext conectado a la API real`.
+- [x] Paso 1: implementar servicios + AuthContext con `me()` al montar (sustituye sesión de demostración).
+- [x] Paso 2: `npm run lint` y `npm run build` PASS (sin errores de TS).
+- [x] Paso 3: verificación manual dev: `npm run dev:api` + `npm run dev` → login con usuario seed → redirige a inicio; logout limpia cookie.
+- [x] Paso 4: commit `feat(front): servicios tipados + AuthContext conectado a la API real`.
 
 ### Task 15: Frontend — servicios de oficios y flujos (radicar/turnar/seguir/responder/enviar)
 **Files:** crear `src/services/oficiosService.ts`; modificar vistas de `src/User/` (Documentos, seguimiento, salidas) para consumir servicios y dejar de depender de `src/Data/oficiosStore.ts` para datos reales (se mantiene el store como fallback solo si la API no responde, `feature flag` en `src/services/index.ts`).

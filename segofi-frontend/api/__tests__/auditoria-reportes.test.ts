@@ -42,7 +42,7 @@ describe("Task 13 — Auditoría, reportes/exportación y notificaciones", () =>
       .returning();
 
     // 2. Operativo Depto 1 (Rol 1, Depto 1)
-    const [op1] = await db
+     await db
       .insert(schema.usuarios)
       .values({
         nombre: "Operativo 1",
@@ -56,7 +56,7 @@ describe("Task 13 — Auditoría, reportes/exportación y notificaciones", () =>
       .returning();
 
     // 3. Operativo Depto 2 (Rol 1, Depto 2)
-    const [op2] = await db
+     await db
       .insert(schema.usuarios)
       .values({
         nombre: "Operativo 2",
@@ -104,7 +104,7 @@ describe("Task 13 — Auditoría, reportes/exportación y notificaciones", () =>
     });
 
     // Oficio 3: Depto 2, Estado 1 (Pendiente)
-    const [oficio3] = await db
+     await db
       .insert(schema.oficios)
       .values({
         folio: "OFI-2026-0003",
