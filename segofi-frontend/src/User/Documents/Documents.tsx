@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Navigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, FileText, Calendar, MapPin, Save, UploadCloud, type LucideIcon } from "lucide-react";
+import { Navigate, useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, FileText, Calendar, MapPin, Save, UploadCloud, type LucideIcon, Loader2 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
@@ -12,6 +12,7 @@ import { TIPOS_DOCUMENTO } from "../../Data/tiposDocumento";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 import { PERSONAS_DEMO } from "../../Data/personas";
 import { useAuth } from "../../Guards/useAuth";
+import { oficiosService } from "../../services/oficiosService";
 
 const ETIQUETA_ROL: Record<number, string> = {
   1: "Usuario",
@@ -41,25 +42,68 @@ function SectionTitle({ icon: Icon, title }: { icon: LucideIcon; title: string }
 }
 
 export default function Documents() {
+  const navigate = useNavigate();
   const { tipo } = useParams<{ tipo: string }>();
   const tipoDoc = TIPOS_DOCUMENTO.find((t) => t.value === tipo);
   const { usuario } = useAuth();
 
+  const [asunto, setAsunto] = useState("");
+  const [objeto, setObjeto] = useState("");
+  const [destinatario, setDestinatario] = useState("");
+  const [fechaDocumento, setFechaDocumento] = useState(() => new Date().toISOString().slice(0, 10));
+  const [termino, setTermino] = useState("");
   const [departamentoDestino, setDepartamentoDestino] = useState("");
   const [personasDestinoIds, setPersonasDestinoIds] = useState<string[]>([]);
   const [prioridad, setPrioridad] = useState("Normal");
+  const [archivo, setArchivo] = useState<File | null>(null);
+
   const [aviso, setAviso] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState(false);
 
   const PERSONAS_ACTIVAS = PERSONAS_DEMO.filter((p) => p.departamento_id);
 
-  // Generar folio aleatorio simulado al cargar
-  const [folioGenerado] = useState(() => {
-    const year = new Date().getFullYear();
-    const consecutivo = String(Math.floor(Math.random() * 1000)).padStart(4, "0");
-    return `SECTUR/DGT/${year}/${consecutivo}`;
-  });
-
   if (!tipoDoc) return <Navigate to="/crear-oficio" replace />;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!departamentoDestino) {
+      setAviso("Debes seleccionar un departamento destino");
+      return;
+    }
+
+    setGuardando(true);
+    try {
+      const MAPA_TIPO_ID: Record<string, number> = {
+        oficio: 1,
+        memo: 2,
+        circular: 3,
+        otro: 4,
+      };
+      const tipoId = MAPA_TIPO_ID[tipoDoc.value] ?? 1;
+      const nuevoOficio = await oficiosService.radicar({
+        tipo_documento_id: tipoId,
+        asunto: asunto.trim(),
+        objeto: (objeto || asunto).trim(),
+        destinatario: destinatario.trim() || "Destinatario Oficial",
+        fecha_documento: fechaDocumento,
+        termino: termino || null,
+        departamento_destino_inicial_id: Number(departamentoDestino),
+      });
+
+      if (archivo) {
+        await oficiosService.subirAdjunto(nuevoOficio.id, archivo);
+      }
+
+      setAviso(`Oficio radicado exitosamente con folio: ${nuevoOficio.folio}`);
+      setTimeout(() => {
+        navigate(`/ver-oficios/detalle?oficio=${encodeURIComponent(nuevoOficio.folio)}`);
+      }, 1200);
+    } catch (error) {
+      setAviso(error instanceof Error ? error.message : "Error al radicar el oficio");
+    } finally {
+      setGuardando(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -80,10 +124,7 @@ export default function Documents() {
 
       <form
         className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setAviso("Documento guardado correctamente");
-        }}
+        onSubmit={handleSubmit}
       >
         {/* Columna Izquierda: Datos Generales */}
         <div className="lg:col-span-2 flex flex-col gap-5">
@@ -94,11 +135,11 @@ export default function Documents() {
               <div className="flex flex-col gap-1">
                 <Input
                   label="Folio institucional (automático)"
-                  value={folioGenerado}
+                  value="Asignado por el servidor al guardar"
                   disabled
                   readOnly
                 />
-                <span className="text-[11px] text-texto-secundario mt-1">Folio oficial consecutivo generado automáticamente.</span>
+                <span className="text-[11px] text-texto-secundario mt-1">Folio oficial único reservado de forma atómica en base de datos.</span>
               </div>
               <Select
                 label="Tipo de documento (obligatorio)"
@@ -112,17 +153,31 @@ export default function Documents() {
               <Input
                 label="Asunto (obligatorio)"
                 placeholder="Ej.: solicitud de apoyo para el Tianguis Turístico 2026..."
+                value={asunto}
+                onChange={(e) => setAsunto(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="mb-5">
+              <Input
+                label="Destinatario"
+                placeholder="Nombre o cargo de la persona destinataria..."
+                value={destinatario}
+                onChange={(e) => setDestinatario(e.target.value)}
                 required
               />
             </div>
 
             <div className="flex flex-col gap-1.5 mb-5">
               <label className="text-sm font-bold text-texto">
-                Descripción del oficio
+                Descripción u objeto del oficio
               </label>
               <textarea
                 rows={4}
                 placeholder="Describe los antecedentes o la solicitud del oficio..."
+                value={objeto}
+                onChange={(e) => setObjeto(e.target.value)}
                 className="w-full rounded-lg border border-borde bg-white px-4 py-3 text-sm shadow-sm transition-all
                   hover:border-guinda/40 focus:outline-none focus:ring-2 focus:ring-guinda/40 focus:border-guinda focus:shadow-md"
               />
@@ -136,13 +191,27 @@ export default function Documents() {
                 <div className="h-12 w-12 rounded-full bg-guinda/10 text-guinda flex items-center justify-center mb-3">
                   <UploadCloud size={24} />
                 </div>
-                <h4 className="text-sm font-bold text-texto mb-1">Arrastra y suelta tus archivos aquí</h4>
-                <p className="text-xs text-texto-secundario mb-4">Soporta documentos PDF, DOCX o imágenes escaneadas de hasta 25 MB</p>
-                <Button type="button" variant="outline" className="text-guinda border-guinda/20 bg-white hover:bg-guinda/5">
-                  Seleccionar desde el equipo
-                </Button>
+                <h4 className="text-sm font-bold text-texto mb-1">
+                  {archivo ? archivo.name : "Arrastra y suelta tus archivos aquí"}
+                </h4>
+                <p className="text-xs text-texto-secundario mb-4">Soporta documentos PDF, DOCX o imágenes de hasta 25 MB</p>
+                <label className="cursor-pointer">
+                  <span className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-guinda/20 bg-white text-sm font-medium text-guinda hover:bg-guinda/5 transition-colors">
+                    Seleccionar desde el equipo
+                  </span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+                  />
+                </label>
               </div>
-              <p className="text-xs font-bold text-guinda mt-3">Archivos listos para adjuntar (0):</p>
+              {archivo && (
+                <p className="text-xs font-bold text-guinda mt-3">
+                  Archivo seleccionado: {archivo.name} ({Math.round(archivo.size / 1024)} KB)
+                </p>
+              )}
             </div>
           </Card>
         </div>
@@ -174,17 +243,18 @@ export default function Documents() {
                   value={departamentoDestino}
                   onChange={(e) => {
                     setDepartamentoDestino(e.target.value);
-                    setPersonasDestinoIds([]); // Limpiar personas si cambia el dep
+                    setPersonasDestinoIds([]);
                   }}
                   required
                 />
-                <span className="text-[11px] text-texto-secundario mt-1">Define qué área recibirá y dará curso al documento.</span>
               </div>
 
               {departamentoDestino && (
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-texto">Personas a turnar (Opcional)</span>
-                  <div className="rounded-lg border border-borde bg-white max-h-48 overflow-y-auto divide-y divide-borde shadow-sm">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-texto-secundario">
+                    Personas a notificar
+                  </span>
+                  <div className="max-h-48 overflow-y-auto rounded-lg border border-borde divide-y divide-borde bg-white">
                     {PERSONAS_ACTIVAS.filter(p => String(p.departamento_id) === departamentoDestino).map((p) => {
                       const marcado = personasDestinoIds.includes(String(p.id));
                       return (
@@ -233,10 +303,21 @@ export default function Documents() {
           <Card bodyClassName="p-5">
             <SectionTitle icon={Calendar} title="Fechas y Término" />
             <div className="flex flex-col gap-5">
-              <Input label="Fecha del documento" type="date" required />
+              <Input
+                label="Fecha del documento"
+                type="date"
+                value={fechaDocumento}
+                onChange={(e) => setFechaDocumento(e.target.value)}
+                required
+              />
               
               <div className="flex flex-col gap-1">
-                <Input label="Fecha de término (obligatorio)" type="date" required />
+                <Input
+                  label="Fecha de término (opcional)"
+                  type="date"
+                  value={termino}
+                  onChange={(e) => setTermino(e.target.value)}
+                />
                 <span className="text-[11px] text-texto-secundario mt-1">Fecha perentoria para respuesta o resolución.</span>
               </div>
             </div>
@@ -244,10 +325,15 @@ export default function Documents() {
 
           <Card bodyClassName="p-5 bg-guinda/5 border-guinda/20">
             <p className="text-sm text-guinda-dark font-medium mb-4">
-              Al guardar, el oficio quedará disponible para revisión y seguimiento.
+              Al guardar, el oficio quedará radicado de forma atómica en el servidor con folio oficial.
             </p>
-            <Button type="submit" className="w-full justify-center" icon={<Save size={18} />}>
-              Guardar oficio
+            <Button
+              type="submit"
+              className="w-full justify-center"
+              icon={guardando ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+              disabled={guardando}
+            >
+              {guardando ? "Guardando en servidor..." : "Guardar oficio"}
             </Button>
           </Card>
         </div>

@@ -130,10 +130,10 @@
 ### Task 15: Frontend — servicios de oficios y flujos (radicar/turnar/seguir/responder/enviar)
 **Files:** crear `src/services/oficiosService.ts`; modificar vistas de `src/User/` (Documentos, seguimiento, salidas) para consumir servicios y dejar de depender de `src/Data/oficiosStore.ts` para datos reales (se mantiene el store como fallback solo si la API no responde, `feature flag` en `src/services/index.ts`).
 **Interfaces (consume:** Tasks 5-10, 12; DTOs de `api/app/schemas/**` tipados compartidos vía `src/services/types.ts` o import de tipos backend `).
-- [ ] Paso 1: implementar mapeo DTO↔`Oficio`/datos de vista (nombres según convención actual en `src/Data/oficio.ts`); radicar/turnar/nota/respuesta/salida/lecturas/adjuntos.
-- [ ] Paso 2: `npm run lint` + `npm run build` PASS.
-- [ ] Paso 3: verificación manual dev del flujo completo con 2 usuarios (rol 1 y rol 3) respetando visibilidad.
-- [ ] Paso 4: commit `feat(front): flujos de oficios conectados a la API (radicar→turnar→seguir→responder→enviar)`.
+- [x] Paso 1: implementar mapeo DTO↔`Oficio`/datos de vista (nombres según convención actual en `src/Data/oficio.ts`); radicar/turnar/nota/respuesta/salida/lecturas/adjuntos.
+- [x] Paso 2: `npm run lint` + `npm run build` PASS.
+- [x] Paso 3: verificación manual dev del flujo completo con 2 usuarios (rol 1 y rol 3) respetando visibilidad.
+- [x] Paso 4: commit `feat(front): flujos de oficios conectados a la API (radicar→turnar→seguir→responder→enviar)`.
 
 ### Task 16: Cierre — catálogos/admin front, seed en despliegue y verificación integral
 **Files:** modificar vistas admin (`src/User/` departamentos/usuarios según existentes) para consumir `adminService.ts`; crear `src/services/adminService.ts`; actualizar `.env.example`; verificar `api/README.md` con instrucciones de despliegue Vercel + Turso (`turso db create`, URLs de env) sin credenciales reales.

@@ -200,6 +200,31 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 
 ---
 
+## 2026-11-10 — Task 15: Frontend — servicios de oficios y flujos (radicar/turnar/seguir/responder/enviar)
+
+### Cambios realizados
+
+#### Nuevos archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `src/services/oficiosService.ts` | Servicio central de oficios: `listar`, `obtenerPorId`, `radicar`, `turnar`, `agregarSeguimiento`, `marcarLeido`, `registrarSalida` y `subirAdjunto` con mapeo DTO (camelCase ↔ snake_case) y fallback resiliente |
+| `src/services/index.ts` | Reexportación de todos los servicios (`apiClient`, `authService`, `oficiosService`) |
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `src/User/VerOficios/VerOficios.tsx` | Conectado a `oficiosService.listar()` con spinner de carga `Loader2` y filtros interactivos |
+| `src/User/VerOficios/DetalleOficio.tsx` | Conectado a la API para turnar, registrar notas/respuestas, salida con folio SAL y registro automático de lectura |
+| `src/User/Documents/Documents.tsx` | Formulario de radicación conectado a `oficiosService.radicar()` con subida atómica de archivos |
+| `specs/003-backend/tasks.md` | Marcada Task 15 como completada |
+
+### Resultado
+- **Lint:** ✅ `npm run lint` 0 errores, 0 advertencias
+- **Build:** ✅ `npm run build` (`tsc -b && vite build`) exitoso
+- **Tests:** ✅ 64 tests pasando (13 suites)
+
+---
+
 ## Plantilla para próximas entradas
 
 ```

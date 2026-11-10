@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FilePlus2, FolderOpen, Search } from "lucide-react";
+import { FilePlus2, FolderOpen, Search, Loader2, Building2 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
@@ -8,13 +8,11 @@ import DataTable, { type Column } from "../../components/DataTable";
 import StatusBadge, { type EstadoOficio } from "../../components/StatusBadge";
 import Button from "../../components/Button";
 import { type Oficio } from "../../Data/oficio";
-import { useOficios } from "../../Data/oficiosStore";
 import { useAuth } from "../../Guards/useAuth";
-import { oficiosVisibles, tieneAccesoTotal } from "../../Guards/alcance";
+import { tieneAccesoTotal } from "../../Guards/alcance";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 import { TIPOS_DOCUMENTO } from "../../Data/tiposDocumento";
-
-import { Building2 } from "lucide-react";
+import { oficiosService } from "../../services/oficiosService";
 
 const FILTROS: ("Todos" | EstadoOficio)[] = [
   "Todos",
@@ -63,8 +61,8 @@ const columns: Column<Oficio>[] = [
       );
     },
   },
-  { 
-    header: "Asunto & Objeto", 
+  {
+    header: "Asunto & Objeto",
     render: (o) => (
       <div className="flex flex-col gap-1 max-w-[280px]">
         <span className="font-semibold text-texto-dark text-[13.5px] leading-snug line-clamp-2">
@@ -74,7 +72,7 @@ const columns: Column<Oficio>[] = [
           Dest: {o.destinatario}
         </span>
       </div>
-    ) 
+    )
   },
   {
     header: "Tipo",
@@ -99,24 +97,24 @@ const columns: Column<Oficio>[] = [
       );
     },
   },
-  { 
-    header: "Recepción", 
+  {
+    header: "Recepción",
     render: (o) => (
       <span className="text-[13px] text-slate-600 whitespace-nowrap">
         {o.fecha_recepcion.split("T")[0]}
       </span>
-    ) 
+    )
   },
-  { 
-    header: "Término", 
+  {
+    header: "Término",
     render: (o) => {
       if (!o.termino) return <span className="text-[13px] text-slate-600">—</span>;
-      
+
       const parts = o.termino.split("-");
       const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
       const diff = Math.ceil((d.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
       const isVencido = diff < 0 && o.estado_id !== 5 && o.estado_id !== 4;
-      
+
       return (
         <div className="flex flex-col gap-1 text-[13px]">
           <span className={isVencido ? "text-red-600 font-bold" : "text-slate-600"}>
@@ -127,13 +125,13 @@ const columns: Column<Oficio>[] = [
               Vencido ({Math.abs(diff)}d)
             </span>
           ) : diff <= 10 && diff >= 0 ? (
-             <span className="text-[11px] font-medium text-slate-500">
+            <span className="text-[11px] font-medium text-slate-500">
               {diff}d
             </span>
           ) : null}
         </div>
       );
-    } 
+    }
   },
   { header: "Estado", render: (o) => <StatusBadge estado={ESTADO_MAP[o.estado_id] || "Recibido"} /> },
 ];
@@ -145,17 +143,39 @@ export default function VerOficios() {
   const [deptoFilter, setDeptoFilter] = useState("Todos");
   const [tipoFilter, setTipoFilter] = useState("Todos");
   const [busqueda, setBusqueda] = useState("");
-  const oficios = useOficios();
-  const alcance = oficiosVisibles(usuario, oficios);
   const esGlobal = tieneAccesoTotal(usuario);
+
+  //Estados locales para los datos de carga
+  const [oficios, setOficios] = useState<Oficio[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  //Efecto que carga los oficios reales desde la API al montar el componente
+  useEffect(() => {
+    let montado = true;
+
+    oficiosService
+      .listar()
+      .then((resultado) => {
+        if (montado) setOficios(resultado.oficios);
+      })
+      .catch((err) => {
+        console.error("Error al cargar oficos desde API:", err);
+      })
+      .finally(() => {
+        if (montado) setCargando(false);
+      });
+    return () => {
+      montado = false;
+    };
+  }, []);
 
   const cuenta = (f: (typeof FILTROS)[number]) =>
     f === "Todos"
-      ? alcance.length
-      : alcance.filter((o) => o.estado_id === ESTADO_INV_MAP[f as string]).length;
+      ? oficios.length
+      : oficios.filter((o) => o.estado_id === ESTADO_INV_MAP[f as string]).length;
 
   const q = busqueda.trim().toLowerCase();
-  const filas = alcance.filter((o) => {
+  const filas = oficios.filter((o) => {
     const depto = DEPARTAMENTOS_DEMO.find(d => d.id === o.departamento_destino_inicial_id)?.nombre || "";
     return (filtro === "Todos" || o.estado_id === ESTADO_INV_MAP[filtro as string]) &&
       (deptoFilter === "Todos" || String(o.departamento_destino_inicial_id) === deptoFilter) &&
@@ -188,6 +208,7 @@ export default function VerOficios() {
       />
 
       <Card>
+
         <div className="flex flex-col md:flex-row gap-4 mb-4 items-end">
           <div className="flex-1 w-full">
             <Input
@@ -198,7 +219,7 @@ export default function VerOficios() {
               onChange={(e) => setBusqueda(e.target.value)}
             />
           </div>
-          
+
           <div className="w-full md:w-64">
             <label className="block text-sm font-semibold text-texto-secundario mb-1">
               Departamento
@@ -241,19 +262,17 @@ export default function VerOficios() {
             <button
               key={f}
               onClick={() => setFiltro(f)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
-                filtro === f
-                  ? "bg-guinda text-white border-guinda shadow-sm"
-                  : "bg-white text-texto-secundario border-borde hover:border-guinda hover:text-guinda"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all ${filtro === f
+                ? "bg-guinda text-white border-guinda shadow-sm"
+                : "bg-white text-texto-secundario border-borde hover:border-guinda hover:text-guinda"
+                }`}
             >
               {f}
               <span
-                className={`min-w-5 rounded-full px-1.5 text-[11px] font-bold ${
-                  filtro === f
-                    ? "bg-white/25 text-white"
-                    : "bg-guinda/10 text-guinda"
-                }`}
+                className={`min-w-5 rounded-full px-1.5 text-[11px] font-bold ${filtro === f
+                  ? "bg-white/25 text-white"
+                  : "bg-guinda/10 text-guinda"
+                  }`}
               >
                 {cuenta(f)}
               </span>
@@ -261,12 +280,21 @@ export default function VerOficios() {
           ))}
         </div>
 
-        <DataTable
-          columns={columns}
-          rows={filas}
-          onView={(oficio) => navigate(`/ver-oficios/detalle?oficio=${encodeURIComponent(oficio.folio)}`)}
-          emptyMessage="Ningún oficio coincide con tu búsqueda."
-        />
+        {cargando ? (
+          <div className="flex flex-col items-center justify-center py-16 text-texto-secundario">
+            <Loader2 className="w-8 h-8 animate-spin text-guinda mb-2" />
+            <span className="text-sm">Cargando oficios desde el servidor...</span>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={filas}
+            onView={(oficio) =>
+              navigate(`/ver-oficios/detalle?oficio=${encodeURIComponent(oficio.folio)}`)
+            }
+            emptyMessage="Ningún oficio coincide con tu búsqueda."
+          />
+        )}
       </Card>
 
     </div>
