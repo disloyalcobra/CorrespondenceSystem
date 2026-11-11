@@ -4,12 +4,12 @@ import { drizzle } from "drizzle-orm/libsql";
 import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import * as schema from "../app/db/schema.js";
-import { migrar } from "../app/db/migrate.js";
-import { seed } from "../app/db/seed.js";
+import * as schema from "../_app/db/schema.js";
+import { migrar } from "../_app/db/migrate.js";
+import { seed } from "../_app/db/seed.js";
 import { createApp } from "../index.js";
-import { hashPassword } from "../app/lib/auth.js";
-import { resetBlobUploader } from "../app/lib/blob.js";
+import { hashPassword } from "../_app/lib/auth.js";
+import { resetBlobUploader } from "../_app/lib/blob.js";
 
 /**
  * Regresión del fallo reportado: al crear un oficio con archivo el servidor

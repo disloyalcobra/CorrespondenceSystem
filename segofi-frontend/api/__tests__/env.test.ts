@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { cargarEnvLocal, parsearEnvFile } from "../app/env.js";
+import { cargarEnvLocal, parsearEnvFile } from "../_app/env.js";
 
 /**
  * Regresión del fallo reportado: la API arrancaba sin leer el archivo .env
@@ -97,7 +97,7 @@ describe("Carga del archivo .env", () => {
         process.env.SEGOFI_ENV_FILE = ruta;
 
         vi.resetModules();
-        const { getEnv } = await import("../app/env.js");
+        const { getEnv } = await import("../_app/env.js");
 
         expect(getEnv().TURSO_DATABASE_URL).toBe("libsql://desde-dotenv.turso.io");
     });

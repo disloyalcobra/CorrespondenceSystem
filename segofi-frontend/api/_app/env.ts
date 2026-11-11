@@ -15,7 +15,7 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
-// Raíz del proyecto (segofi-frontend) resuelta desde api/app/env.ts
+// Raíz del proyecto (segofi-frontend) resuelta desde api/_app/env.ts
 const RAIZ_PROYECTO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 /**

@@ -54,10 +54,10 @@ npx drizzle-kit push
 
 Para sembrar los roles, estados y catálogos iniciales en Turso:
 ```bash
-npx tsx api/scripts/seed.ts
+npx tsx api/_scripts/seed.ts
 ```
 
-> Si la base ya existe, verifica que sus columnas coincidan con `api/app/db/schema.ts`
+> Si la base ya existe, verifica que sus columnas coincidan con `api/_app/db/schema.ts`
 > (por ejemplo `auditoria.entidad_id`). Una diferencia de nombres provoca errores 500
 > al escribir en la bitácora.
 
@@ -71,7 +71,7 @@ npm run dev:api  # API (Hono) en http://localhost:3000
 ```
 
 - El archivo `.env` de la raíz del proyecto se carga automáticamente: `tsx` y `vitest`
-  no lo leen por sí solos, por eso `api/app/env.ts` lo carga de forma explícita.
+  no lo leen por sí solos, por eso `api/_app/env.ts` lo carga de forma explícita.
   Las variables ya presentes en el entorno tienen precedencia.
 - Si `TURSO_DATABASE_URL` no está configurada, la API avisa por consola que está
   usando la base local `file:local.db` y **los datos no se guardan en la base

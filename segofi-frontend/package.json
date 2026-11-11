@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "db:seed": "tsx api/scripts/seed.ts"
+    "db:seed": "tsx api/_scripts/seed.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.6",

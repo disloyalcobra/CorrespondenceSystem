@@ -12,7 +12,7 @@ export interface StorageUploader {
 /** Prefijo de las URL guardadas en BD para archivos que viven en el disco local. */
 export const PREFIJO_LOCAL = "local://";
 
-// Raíz del proyecto (segofi-frontend) resuelta desde api/app/lib/blob.ts
+// Raíz del proyecto (segofi-frontend) resuelta desde api/_app/lib/blob.ts
 const RAIZ_PROYECTO = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 /** Directorio donde se guardan los adjuntos cuando no hay almacenamiento remoto configurado. */

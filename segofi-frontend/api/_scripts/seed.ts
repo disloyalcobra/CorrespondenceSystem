@@ -1,5 +1,5 @@
-import { getDb } from "../app/db/client.js";
-import { seed } from "../app/db/seed.js";
+import { getDb } from "../_app/db/client.js";
+import { seed } from "../_app/db/seed.js";
 
 async function main() {
   console.log("Sembrando catálogos y usuario administrador en la base de datos...");

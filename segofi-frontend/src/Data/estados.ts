@@ -1,6 +1,6 @@
 /**
  * Catálogo de estados del oficio.
- * Fuente de verdad: `api/app/db/seed.ts` (ESTADOS_SEED) y `docs/logica-sistema.md`:
+ * Fuente de verdad: `api/_app/db/seed.ts` (ESTADOS_SEED) y `docs/logica-sistema.md`:
  * Pendiente (1), Turnado (2), En proceso (3), Respondido (4), Concluido (5),
  * Vencido (6) y Enviado (7).
  */

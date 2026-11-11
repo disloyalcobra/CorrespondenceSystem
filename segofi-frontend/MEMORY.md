@@ -381,3 +381,28 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 ### Notas técnicas
 - Vercel compila las funciones de `api/` como ESM (`"type": "module"`) con resolución `node16/nodenext`, que exige extensión en imports relativos (TS2835). Además de los errores de tipos, sin extensión Node falla en runtime con `ERR_MODULE_NOT_FOUND`.
 - Se usa `.js` (no `.ts`): TypeScript lo resuelve al `.ts` fuente y funciona igual con `tsx`, Vitest y la resolución `bundler` local.
+
+---
+
+## 2026-11-11 — Una sola Serverless Function para el plan Hobby de Vercel
+
+### Cambios realizados
+
+#### Archivos movidos / modificados
+| Archivo | Cambio |
+|---------|--------|
+| `api/app/` → `api/_app/` | Renombrado: el prefijo `_` evita que Vercel convierta cada archivo en una función |
+| `api/scripts/` → `api/_scripts/` | Mismo motivo |
+| `api/index.ts`, `api/__tests__/*`, `api/_scripts/seed.ts` | Imports apuntan a `_app/` |
+| `package.json` | `db:seed` usa `api/_scripts/seed.ts` |
+| `drizzle.config.ts` | Esquema en `./api/_app/db/schema.ts` |
+| `api/README.md`, `src/Data/estados.ts`, `api/_app/env.ts`, `api/_app/lib/blob.ts` | Rutas en comentarios/documentación |
+
+### Resultado
+- **Lint:** ✅ sin errores
+- **Build:** ✅ `npm run build` sin errores
+- **Tests:** ✅ 77 tests pasando (16 suites)
+
+### Notas técnicas
+- Vercel crea una Serverless Function por cada `.ts` dentro de `api/` (34 archivos), y el plan Hobby permite máximo 12 por deployment. Los archivos/carpetas con prefijo `_` se excluyen, así que ahora solo `api/index.ts` es función; todas las rutas siguen llegando ahí por el rewrite `/api/(.*)` de `vercel.json`.
+- Los specs/planes históricos en `specs/` y `docs/` conservan la ruta antigua `api/app/` como registro.

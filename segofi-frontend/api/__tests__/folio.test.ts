@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { eq, and } from "drizzle-orm";
-import * as schema from "../app/db/schema.js";
-import { migrar } from "../app/db/migrate.js";
-import { reservarFolioOficio, reservarFolioSalida } from "../app/lib/folio.js";
+import * as schema from "../_app/db/schema.js";
+import { migrar } from "../_app/db/migrate.js";
+import { reservarFolioOficio, reservarFolioSalida } from "../_app/lib/folio.js";
 
 describe("lib/folio: Reservas transaccionales de folio por año", () => {
   let client: ReturnType<typeof createClient>;

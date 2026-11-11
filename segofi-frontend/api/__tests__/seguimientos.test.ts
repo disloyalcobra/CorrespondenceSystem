@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "../app/db/schema.js";
-import { migrar } from "../app/db/migrate.js";
-import { seed } from "../app/db/seed.js";
+import * as schema from "../_app/db/schema.js";
+import { migrar } from "../_app/db/migrate.js";
+import { seed } from "../_app/db/seed.js";
 import { createApp } from "../index.js";
-import { hashPassword } from "../app/lib/auth.js";
+import { hashPassword } from "../_app/lib/auth.js";
 import { eq } from "drizzle-orm";
 
 describe("Task 9 — Seguimientos, respuestas y lecturas", () => {
