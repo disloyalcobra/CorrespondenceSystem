@@ -406,3 +406,22 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 ### Notas técnicas
 - Vercel crea una Serverless Function por cada `.ts` dentro de `api/` (34 archivos), y el plan Hobby permite máximo 12 por deployment. Los archivos/carpetas con prefijo `_` se excluyen, así que ahora solo `api/index.ts` es función; todas las rutas siguen llegando ahí por el rewrite `/api/(.*)` de `vercel.json`.
 - Los specs/planes históricos en `specs/` y `docs/` conservan la ruta antigua `api/app/` como registro.
+
+---
+
+## 2026-11-11 — Pantalla en blanco en Vercel (base de Vite)
+
+### Cambios realizados
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `vite.config.ts` | `base` es `/` cuando se compila en Vercel (`process.env.VERCEL`) y `/CorrespondenceSystem/` en otro caso (GitHub Pages) |
+
+### Resultado
+- **Lint:** ✅ sin errores
+- **Build:** ✅ con `VERCEL=1` los assets se sirven desde `/assets/...`; sin ella, desde `/CorrespondenceSystem/assets/...`
+- **Tests:** sin cambios en el API (77 pasando en la tarea anterior)
+
+### Notas técnicas
+- Con `base: '/CorrespondenceSystem/'` fijo, en Vercel el HTML pedía `/CorrespondenceSystem/assets/*.js`. Esa ruta no existe, el rewrite `/(.*)` devolvía `index.html` en lugar del JS y la app quedaba en blanco. `BrowserRouter` y los logos usan `import.meta.env.BASE_URL`, así que se ajustan solos.

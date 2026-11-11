@@ -4,7 +4,9 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/CorrespondenceSystem/',
+  // Vercel sirve la app desde la raíz (y define VERCEL=1 al compilar);
+  // GitHub Pages la sirve bajo /CorrespondenceSystem/.
+  base: process.env.VERCEL ? '/' : '/CorrespondenceSystem/',
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
