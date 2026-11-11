@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "tsx watch api/index.ts",
+    "dev:api": "tsx watch api/server.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run"
   },
   "dependencies": {
+    "@hono/node-server": "^2.1.6",
     "@hono/vercel": "^1.0.1",
     "@libsql/client": "^0.18.0",
     "@tailwindcss/vite": "^4.3.3",

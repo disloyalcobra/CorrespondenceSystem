@@ -18,7 +18,7 @@ interface RequestOptions extends RequestInit {
 //3. Funcion central que procesa todas las llamadas http de la aplicacion
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     //Aseguramos que la ruta empieze con api
-    let url = endpoint.startsWith("/api") ? endpoint : '/api${endpoint}';
+    let url = endpoint.startsWith("/api") ? endpoint : `/api${endpoint}`;
 
     //Si no pasaron parámetros en un objeto, los convertimos a formato '?clave=valor&otra=123'
     if (options.params) {
