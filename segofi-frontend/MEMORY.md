@@ -225,6 +225,31 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 
 ---
 
+## 2026-11-10 — Task 16: Cierre — catálogos/admin front, seed en despliegue y verificación integral
+
+### Cambios realizados
+
+#### Nuevos archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `src/services/adminService.ts` | Servicio para CRUD de Departamentos (`/api/departamentos`), Usuarios (`/api/usuarios`) y consulta de Bitácora (`/api/auditoria`) |
+| `api/README.md` | Guía de despliegue a producción con Vercel Serverless Functions + Turso (libSQL), variables de entorno, migraciones y seed |
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `src/services/index.ts` | Exportación unificada incluyendo `adminService` |
+| `src/User/Departamentos/Departamentos.tsx` | Conectado a `adminService.departamentos` con feedback visual, modal y confirmación |
+| `src/User/Cuentas/Cuentas.tsx` | Conectado a `adminService.usuarios` para altas, edición y desactivación de usuarios |
+| `specs/003-backend/tasks.md` | Marcada Task 16 como completada (Cierre de la Spec 003) |
+
+### Resultado
+- **Lint:** ✅ `npm run lint` 0 errores, 0 advertencias
+- **Build:** ✅ `npm run build` (`tsc -b && vite build`) exitoso
+- **Tests:** ✅ 64 tests pasando (13 suites)
+
+---
+
 ## Plantilla para próximas entradas
 
 ```

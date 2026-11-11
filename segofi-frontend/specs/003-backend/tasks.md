@@ -138,10 +138,10 @@
 ### Task 16: Cierre — catálogos/admin front, seed en despliegue y verificación integral
 **Files:** modificar vistas admin (`src/User/` departamentos/usuarios según existentes) para consumir `adminService.ts`; crear `src/services/adminService.ts`; actualizar `.env.example`; verificar `api/README.md` con instrucciones de despliegue Vercel + Turso (`turso db create`, URLs de env) sin credenciales reales.
 **Interfaces (consume:** Tasks 4, 11, 13**).**
-- [ ] Paso 1: conectar administración de usuarios/departamentos con la API.
-- [ ] Paso 2: `npm run lint`, `npm run build`, `npm run test` en verde.
-- [ ] Paso 3: guía de despliegue en `api/README.md` (Turso, variables, `drizzle-kit push/migrate`, seed admin).
-- [ ] Paso 4: commit `chore(segofi): administración conectada a API y guía de despliegue Vercel+Turso`.
+- [x] Paso 1: conectar administración de usuarios/departamentos con la API.
+- [x] Paso 2: `npm run lint`, `npm run build`, `npm run test` en verde.
+- [x] Paso 3: guía de despliegue en `api/README.md` (Turso, variables, `drizzle-kit push/migrate`, seed admin).
+- [x] Paso 4: commit `chore(segofi): administración conectada a API y guía de despliegue Vercel+Turso`.
 
 ## Notas de ejecución
 - Correr migraciones antes de cada suite: `runMigrationsEnMemoria()` helper de Task 2 reutilizado por todos los tests.

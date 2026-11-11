@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Building2, Plus, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Building2, Plus, Search, Loader2 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
@@ -8,18 +8,17 @@ import Toast from "../../components/Toast";
 import DataTable, { type Column } from "../../components/DataTable";
 import FormModal from "../../components/FormModal";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import { useOficios } from "../../Data/oficiosStore";
 import {
   DEPARTAMENTOS_DEMO,
   type Departamento,
 } from "../../Data/departamentos";
+import { adminService, type DepartamentoDTO } from "../../services";
 
 const DEPARTAMENTO_VACIO = { nombre: "", tipo: "", clave: "" };
 
 export default function Departamentos() {
-  const oficios = useOficios();
-  const [departamentos, setDepartamentos] =
-    useState<Departamento[]>(DEPARTAMENTOS_DEMO);
+  const [departamentos, setDepartamentos] = useState<Departamento[]>(DEPARTAMENTOS_DEMO);
+  const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState<Departamento | null>(null);
@@ -27,10 +26,34 @@ export default function Departamentos() {
   const [porEliminar, setPorEliminar] = useState<Departamento | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
+  const cargar = () => {
+    adminService.departamentos
+      .listar()
+      .then((datos) => {
+        setDepartamentos(
+          datos.map((d: DepartamentoDTO) => ({
+            id: d.id,
+            nombre: d.nombre,
+            tipo: d.tipo,
+            clave: `DEP-${d.id}`,
+            descripcion: "",
+          }))
+        );
+      })
+      .catch((err) => {
+        console.warn("API no disponible, usando demo:", err);
+      })
+      .finally(() => {
+        setCargando(false);
+      });
+  };
+
+  useEffect(() => {
+    cargar();
+  }, []);
+
   const filas = departamentos.filter((d) =>
-    `${d.nombre} ${d.tipo}`
-      .toLowerCase()
-      .includes(busqueda.toLowerCase()),
+    `${d.nombre} ${d.tipo}`.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const abrirNuevo = () => {
@@ -45,56 +68,44 @@ export default function Departamentos() {
     setModalAbierto(true);
   };
 
-  const guardar = () => {
-    if (editando) {
-      setDepartamentos((prev) =>
-        prev.map((d) => (d.id === editando.id ? { ...d, ...form } : d)),
-      );
-      setAviso("Departamento actualizado");
-    } else {
-      setDepartamentos((prev) => [...prev, { id: Date.now(), ...form }]);
-      setAviso("Departamento agregado");
+  const guardar = async () => {
+    try {
+      if (editando) {
+        await adminService.departamentos.actualizar(editando.id, {
+          nombre: form.nombre,
+          tipo: form.tipo,
+        });
+        setAviso(`Departamento "${form.nombre}" actualizado.`);
+      } else {
+        await adminService.departamentos.crear({
+          nombre: form.nombre,
+          tipo: form.tipo || "Dirección",
+        });
+        setAviso(`Departamento "${form.nombre}" creado.`);
+      }
+      cargar();
+      setModalAbierto(false);
+    } catch (err) {
+      setAviso(err instanceof Error ? err.message : "Error al guardar");
     }
-    setModalAbierto(false);
   };
 
-  const eliminar = () => {
+  const eliminar = async () => {
     if (!porEliminar) return;
-    setDepartamentos((prev) => prev.filter((d) => d.id !== porEliminar.id));
-    setPorEliminar(null);
-    setAviso("Departamento eliminado");
+    try {
+      await adminService.departamentos.eliminar(porEliminar.id);
+      setAviso(`Departamento "${porEliminar.nombre}" eliminado.`);
+      cargar();
+      setPorEliminar(null);
+    } catch (err) {
+      setAviso(err instanceof Error ? err.message : "Error al eliminar");
+    }
   };
 
   const columns: Column<Departamento>[] = [
-    {
-      header: "Departamento",
-      render: (d) => (
-        <span className="inline-flex items-center gap-3 font-medium">
-          <span className="h-9 w-9 rounded-lg bg-guinda/10 text-guinda flex items-center justify-center">
-            <Building2 size={16} />
-          </span>
-          <div className="flex flex-col leading-tight">
-            <span>{d.nombre}</span>
-            <span className="text-[11px] text-slate-500 font-normal">Clave: {d.clave}</span>
-          </div>
-        </span>
-      ),
-    },
-    {
-      header: "Tipo",
-      render: (d) => (
-        <span className="rounded-md bg-dorado/15 px-2.5 py-1 text-xs font-bold text-dorado">
-          {d.tipo}
-        </span>
-      ),
-    },
-    {
-      header: "Oficios Asignados",
-      render: (d) => {
-        const count = oficios.filter(o => o.departamento_destino_inicial_id === d.id).length;
-        return <span className="font-semibold text-texto-dark">{count}</span>;
-      },
-    }
+    { header: "Clave", render: (d) => d.clave },
+    { header: "Nombre", render: (d) => d.nombre },
+    { header: "Tipo", render: (d) => d.tipo },
   ];
 
   return (
@@ -102,76 +113,73 @@ export default function Departamentos() {
       <PageHeader
         icon={Building2}
         title="Departamentos"
-        description={`${departamentos.length} departamentos registrados`}
+        description="Gestiona las áreas y direcciones de la dependencia."
         action={
-          <Button
-            variant="light"
-            icon={<Plus size={18} />}
-            onClick={abrirNuevo}
-          >
-            Agregar
+          <Button icon={<Plus size={18} />} onClick={abrirNuevo}>
+            Nuevo departamento
           </Button>
         }
       />
 
       <Card>
-        <div className="max-w-sm mb-4">
+        <div className="mb-4 max-w-sm">
           <Input
-            label="Buscar"
+            label="Buscar departamento"
             icon={<Search size={18} />}
-            placeholder="Nombre o tipo..."
+            placeholder="Buscar por nombre o tipo…"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
 
-        <DataTable
-          columns={columns}
-          rows={filas}
-          onEdit={abrirEditar}
-          onDelete={setPorEliminar}
-        />
+        {cargando ? (
+          <div className="flex flex-col items-center justify-center py-12 text-texto-secundario">
+            <Loader2 className="w-8 h-8 animate-spin text-guinda mb-2" />
+            <span className="text-sm">Cargando departamentos...</span>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={filas}
+            onEdit={abrirEditar}
+            onDelete={(d) => setPorEliminar(d)}
+            emptyMessage="No se encontraron departamentos."
+          />
+        )}
       </Card>
 
       <FormModal
         open={modalAbierto}
-        title={editando ? "Editar departamento" : "Agregar departamento"}
+        title={editando ? "Editar departamento" : "Nuevo departamento"}
         onClose={() => setModalAbierto(false)}
         onSubmit={guardar}
       >
-        <Input
-          label="Nombre del departamento"
-          value={form.nombre}
-          onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-          required
-        />
-        <Input
-          label="Clave del departamento"
-          value={form.clave}
-          onChange={(e) => setForm({ ...form, clave: e.target.value })}
-          required
-        />
-        <Input
-          label="Tipo"
-          value={form.tipo}
-          onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-          required
-        />
+        <div className="flex flex-col gap-4">
+          <Input
+            label="Nombre del departamento"
+            placeholder="Ej.: Dirección de Promoción Turística"
+            value={form.nombre}
+            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+            required
+          />
+          <Input
+            label="Tipo de área"
+            placeholder="Ej.: Dirección, Subdirección, Jefatura"
+            value={form.tipo}
+            onChange={(e) => setForm({ ...form, tipo: e.target.value })}
+            required
+          />
+        </div>
       </FormModal>
 
       <ConfirmDialog
-        open={porEliminar !== null}
+        open={Boolean(porEliminar)}
         title="¿Eliminar departamento?"
-        description={
-          porEliminar
-            ? `Se eliminará “${porEliminar.nombre}” permanentemente.`
-            : undefined
-        }
+        description={`Esta acción desactivará "${porEliminar?.nombre}".`}
+        confirmLabel="Eliminar"
         variant="danger"
-        confirmLabel="Sí"
-        cancelLabel="No"
-        onConfirm={eliminar}
         onCancel={() => setPorEliminar(null)}
+        onConfirm={eliminar}
       />
 
       <Toast mensaje={aviso} onClose={() => setAviso(null)} />

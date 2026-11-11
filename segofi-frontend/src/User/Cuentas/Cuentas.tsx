@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AlertCircle, Plus, Search, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search, Users, Loader2 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
@@ -12,6 +12,7 @@ import FormModal from "../../components/FormModal";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 import { PERSONAS_DEMO, type Persona } from "../../Data/personas";
+import { adminService, type UsuarioSesion } from "../../services";
 
 const ROLES: { value: string; label: string }[] = [
   { value: "1", label: "Usuario" },
@@ -36,12 +37,14 @@ const CUENTA_VACIA = {
   nombre: "",
   correo: "",
   cargo: "",
+  password: "",
   rol_id: 1,
   departamento_id: DEPARTAMENTOS_DEMO[0].id,
 };
 
 export default function Cuentas() {
   const [cuentas, setCuentas] = useState<Persona[]>(PERSONAS_DEMO);
+  const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState<Persona | null>(null);
@@ -49,90 +52,130 @@ export default function Cuentas() {
   const [porEliminar, setPorEliminar] = useState<Persona | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
-  const pendientes = cuentas.filter((c) => !c.rol_id).length;
+  const cargar = () => {
+    adminService.usuarios
+      .listar()
+      .then((usuarios: UsuarioSesion[]) => {
+        setCuentas(
+          usuarios.map((u) => ({
+            id: u.id,
+            nombre: u.nombre,
+            correo: u.email,
+            cargo: ROLES.find((r) => r.value === String(u.rol_id))?.label || "Usuario",
+            rol_id: u.rol_id,
+            departamento_id: u.departamento_id ?? 1,
+            activo: u.activo,
+          }))
+        );
+      })
+      .catch((err) => {
+        console.warn("API de usuarios no disponible, usando demo:", err);
+      })
+      .finally(() => {
+        setCargando(false);
+      });
+  };
 
-  const filas = cuentas.filter((c) => {
-    const deptoName = DEPARTAMENTOS_DEMO.find(d => d.id === c.departamento_id)?.nombre || "";
-    return `${c.nombre} ${c.correo} ${deptoName}`
-      .toLowerCase()
-      .includes(busqueda.toLowerCase());
-  });
+  useEffect(() => {
+    cargar();
+  }, []);
 
-  const abrirNueva = () => {
+  const filas = cuentas.filter(
+    (c) =>
+      c.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      c.correo.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const abrirNuevo = () => {
     setEditando(null);
     setForm(CUENTA_VACIA);
     setModalAbierto(true);
   };
 
-  const abrirEditar = (c: Persona) => {
-    setEditando(c);
+  const abrirEditar = (p: Persona) => {
+    setEditando(p);
     setForm({
-      nombre: c.nombre,
-      correo: c.correo,
-      cargo: c.cargo ?? "",
-      rol_id: c.rol_id ?? 1,
-      departamento_id: c.departamento_id ?? DEPARTAMENTOS_DEMO[0].id,
+      nombre: p.nombre,
+      correo: p.correo,
+      cargo: p.cargo || "",
+      password: "",
+      rol_id: p.rol_id ?? 1,
+      departamento_id: p.departamento_id ?? 1,
     });
     setModalAbierto(true);
   };
 
-  const guardar = () => {
-    if (editando) {
-      setCuentas((prev) =>
-        prev.map((c) => (c.id === editando.id ? { ...c, ...form } : c)),
-      );
-      setAviso(
-        editando.rol_id
-          ? "Cuenta actualizada"
-          : "Cuenta activada con su rol y departamento",
-      );
-    } else {
-      setCuentas((prev) => [...prev, { id: Date.now(), ...form }]);
-      setAviso("Cuenta creada");
+  const guardar = async () => {
+    try {
+      if (editando) {
+        await adminService.usuarios.actualizar(editando.id, {
+          nombre: form.nombre,
+          email: form.correo,
+          rol_id: form.rol_id,
+          departamento_id: form.departamento_id,
+        });
+        setAviso(`Usuario "${form.nombre}" actualizado.`);
+      } else {
+        await adminService.usuarios.crear({
+          nombre: form.nombre,
+          email: form.correo,
+          password: form.password || "Password123!",
+          rol_id: form.rol_id,
+          departamento_id: form.departamento_id,
+        });
+        setAviso(`Usuario "${form.nombre}" creado.`);
+      }
+      cargar();
+      setModalAbierto(false);
+    } catch (err) {
+      setAviso(err instanceof Error ? err.message : "Error al guardar");
     }
-    setModalAbierto(false);
   };
 
-  const eliminar = () => {
+  const desactivar = async () => {
     if (!porEliminar) return;
-    setCuentas((prev) => prev.filter((c) => c.id !== porEliminar.id));
-    setPorEliminar(null);
-    setAviso("Cuenta eliminada");
+    try {
+      await adminService.usuarios.actualizar(porEliminar.id, { activo: false });
+      setAviso(`Usuario "${porEliminar.nombre}" desactivado.`);
+      cargar();
+      setPorEliminar(null);
+    } catch (err) {
+      setAviso(err instanceof Error ? err.message : "Error al desactivar");
+    }
   };
 
   const columns: Column<Persona>[] = [
     {
-      header: "Nombre",
-      render: (c) => (
-        <span className="inline-flex items-center gap-3 font-medium">
-          <Avatar nombre={c.nombre} size={34} />
-          {c.nombre}
-        </span>
+      header: "Usuario",
+      render: (p) => (
+        <div className="flex items-center gap-3">
+          <Avatar nombre={p.nombre} size={36} />
+          <div>
+            <p className="font-semibold text-texto leading-tight">{p.nombre}</p>
+            <p className="text-xs text-texto-secundario">{p.correo}</p>
+          </div>
+        </div>
       ),
-    },
-    { header: "Correo", render: (c) => c.correo },
-    {
-      header: "Rol",
-      render: (c) =>
-        c.rol_id ? (
-          <span
-            className={`rounded-full border px-3 py-1 text-xs font-medium ${ESTILO_ROL[c.rol_id]}`}
-          >
-            {ROLES.find((r) => String(r.value) === String(c.rol_id))?.label}
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-            <AlertCircle size={12} />
-            Pendiente
-          </span>
-        ),
     },
     {
       header: "Departamento",
-      render: (c) =>
-        c.departamento_id ? DEPARTAMENTOS_DEMO.find(d => d.id === c.departamento_id)?.nombre : (
-          <span className="text-texto-secundario italic">Sin asignar</span>
-        ),
+      render: (p) =>
+        DEPARTAMENTOS_DEMO.find((d) => d.id === p.departamento_id)?.nombre ?? "—",
+    },
+    {
+      header: "Rol",
+      render: (p) => {
+        const rolId = p.rol_id ?? 1;
+        return (
+          <span
+            className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+              ESTILO_ROL[rolId] ?? "bg-gray-100 text-gray-700 border-gray-200"
+            }`}
+          >
+            {ROLES.find((r) => r.value === String(rolId))?.label ?? "Desconocido"}
+          </span>
+        );
+      },
     },
   ];
 
@@ -140,108 +183,99 @@ export default function Cuentas() {
     <div className="flex flex-col gap-5">
       <PageHeader
         icon={Users}
-        title="Cuentas"
-        description={
-          pendientes > 0
-            ? `${cuentas.length} cuentas registradas · ${pendientes} pendiente${pendientes > 1 ? "s" : ""} por asignar`
-            : `${cuentas.length} cuentas registradas`
-        }
+        title="Usuarios"
+        description="Administra los usuarios del sistema y sus permisos de acceso."
         action={
-          <Button
-            variant="light"
-            icon={<Plus size={18} />}
-            onClick={abrirNueva}
-          >
-            Agregar
+          <Button icon={<Plus size={18} />} onClick={abrirNuevo}>
+            Nuevo usuario
           </Button>
         }
       />
 
-      {pendientes > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 animate-in fade-in duration-200">
-          <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-sm text-amber-800">
-            Hay {pendientes} cuenta{pendientes > 1 ? "s" : ""} creada
-            {pendientes > 1 ? "s" : ""} desde el registro público que aún no
-            tiene{pendientes > 1 ? "n" : ""} cargo, rol ni departamento. Edítala
-            {pendientes > 1 ? "s" : ""} para activarla
-            {pendientes > 1 ? "s" : ""}.
-          </p>
-        </div>
-      )}
-
       <Card>
-        <div className="max-w-sm mb-4">
+        <div className="mb-4 max-w-sm">
           <Input
-            label="Buscar"
+            label="Buscar usuario"
             icon={<Search size={18} />}
-            placeholder="Nombre o correo..."
+            placeholder="Buscar por nombre o correo…"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
 
-        <DataTable
-          columns={columns}
-          rows={filas}
-          onEdit={abrirEditar}
-          onDelete={setPorEliminar}
-        />
+        {cargando ? (
+          <div className="flex flex-col items-center justify-center py-12 text-texto-secundario">
+            <Loader2 className="w-8 h-8 animate-spin text-guinda mb-2" />
+            <span className="text-sm">Cargando usuarios...</span>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={filas}
+            onEdit={abrirEditar}
+            onDelete={(p) => setPorEliminar(p)}
+            emptyMessage="No se encontraron usuarios."
+          />
+        )}
       </Card>
 
       <FormModal
         open={modalAbierto}
-        title={editando ? "Editar cuenta" : "Agregar cuenta"}
+        title={editando ? "Editar usuario" : "Nuevo usuario"}
         onClose={() => setModalAbierto(false)}
         onSubmit={guardar}
       >
-        <Input
-          label="Nombre completo"
-          value={form.nombre}
-          onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-          required
-        />
-        <Input
-          label="Correo institucional"
-          type="email"
-          value={form.correo}
-          onChange={(e) => setForm({ ...form, correo: e.target.value })}
-          required
-        />
-        <Input
-          label="Cargo"
-          value={form.cargo}
-          onChange={(e) => setForm({ ...form, cargo: e.target.value })}
-          placeholder="Ej. Jefe de Departamento"
-          required
-        />
-        <Select
-          label="Rol"
-          options={ROLES}
-          value={String(form.rol_id)}
-          onChange={(e) => setForm({ ...form, rol_id: Number(e.target.value) })}
-        />
-        <Select
-          label="Departamento"
-          options={DEPARTAMENTOS_OPTS}
-          value={String(form.departamento_id)}
-          onChange={(e) => setForm({ ...form, departamento_id: Number(e.target.value) })}
-        />
+        <div className="flex flex-col gap-4">
+          <Input
+            label="Nombre completo"
+            value={form.nombre}
+            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+            required
+          />
+          <Input
+            label="Correo electrónico"
+            type="email"
+            value={form.correo}
+            onChange={(e) => setForm({ ...form, correo: e.target.value })}
+            required
+          />
+          {!editando && (
+            <Input
+              label="Contraseña inicial"
+              type="password"
+              placeholder="Mínimo 8 caracteres"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+            />
+          )}
+          <Select
+            label="Rol de acceso"
+            options={ROLES}
+            value={String(form.rol_id)}
+            onChange={(e) => setForm({ ...form, rol_id: Number(e.target.value) })}
+            required
+          />
+          <Select
+            label="Departamento"
+            options={DEPARTAMENTOS_OPTS}
+            value={String(form.departamento_id)}
+            onChange={(e) =>
+              setForm({ ...form, departamento_id: Number(e.target.value) })
+            }
+            required
+          />
+        </div>
       </FormModal>
 
       <ConfirmDialog
-        open={porEliminar !== null}
-        title="¿Eliminar cuenta?"
-        description={
-          porEliminar
-            ? `Se eliminará la cuenta de “${porEliminar.nombre}”.`
-            : undefined
-        }
+        open={Boolean(porEliminar)}
+        title="¿Desactivar usuario?"
+        description={`El usuario "${porEliminar?.nombre}" perderá acceso al sistema.`}
+        confirmLabel="Desactivar"
         variant="danger"
-        confirmLabel="Sí"
-        cancelLabel="No"
-        onConfirm={eliminar}
         onCancel={() => setPorEliminar(null)}
+        onConfirm={desactivar}
       />
 
       <Toast mensaje={aviso} onClose={() => setAviso(null)} />
