@@ -425,3 +425,23 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 
 ### Notas técnicas
 - Con `base: '/CorrespondenceSystem/'` fijo, en Vercel el HTML pedía `/CorrespondenceSystem/assets/*.js`. Esa ruta no existe, el rewrite `/(.*)` devolvía `index.html` en lugar del JS y la app quedaba en blanco. `BrowserRouter` y los logos usan `import.meta.env.BASE_URL`, así que se ajustan solos.
+
+---
+
+## 2026-11-11 — 504 en el API desplegado en Vercel
+
+### Cambios realizados
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `api/index.ts` | Se elimina `export default handle(app)`; se dejan solo los exports por método (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`) y se agregan `OPTIONS` y `HEAD` |
+
+### Resultado
+- **Lint:** ✅ sin errores
+- **Typecheck API (`nodenext`):** ✅ sin errores
+- **Tests:** ✅ 77 tests pasando (16 suites)
+- Prueba manual: `GET(new Request(".../api/health"))` → 200 `{"ok":true}`
+
+### Notas técnicas
+- `handle` de `@hono/vercel` es un handler web `(req: Request) => Response`. El runtime Node de Vercel trata un export `default` como handler clásico `(req, res)`: le pasaba un `IncomingMessage`, nunca se llamaba a `res.end()` y toda petición terminaba en 504 por timeout. Con solo los exports por método, Vercel usa la firma web `Request`/`Response`.

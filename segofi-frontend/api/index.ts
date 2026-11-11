@@ -52,9 +52,13 @@ export function createApp(customDb?: Database): Hono<AppEnv> {
 
 const app = createApp();
 
+// Vercel (runtime Node) usa estos exports por método con Request/Response web.
+// No exportar `default`: Vercel lo trataría como handler clásico (req, res),
+// nunca se llamaría a res.end() y la petición terminaría en 504 por timeout.
 export const GET = handle(app);
 export const POST = handle(app);
 export const PUT = handle(app);
 export const DELETE = handle(app);
 export const PATCH = handle(app);
-export default handle(app);
+export const OPTIONS = handle(app);
+export const HEAD = handle(app);
