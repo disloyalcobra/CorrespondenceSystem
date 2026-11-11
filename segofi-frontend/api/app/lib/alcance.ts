@@ -1,6 +1,6 @@
 import { sql, eq, or, type SQL } from "drizzle-orm";
-import * as schema from "../db/schema";
-import type { UsuarioSchema } from "../schemas/auth";
+import * as schema from "../db/schema.js";
+import type { UsuarioSchema } from "../schemas/auth.js";
 
 export const ROLES_TOTALES = [2, 3]; // 2: Administrador, 3: Directora
 

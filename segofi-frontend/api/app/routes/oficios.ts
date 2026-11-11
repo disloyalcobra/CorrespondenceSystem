@@ -1,16 +1,16 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
-import { requireUser } from "../lib/auth";
-import { ApiError } from "../lib/http";
-import { registrar } from "../lib/auditoria";
-import { reservarFolioOficio } from "../lib/folio";
-import { filtroOficiosSchema } from "../schemas/oficio";
-import { radicarOficioSchema } from "../schemas/radicar";
-import { listarOficios, obtenerOficio } from "../lib/query";
-import type { Database } from "../db/client";
-import { getDb } from "../db/client";
-import * as schema from "../db/schema";
-import type { AppEnv } from "../types";
+import { requireUser } from "../lib/auth.js";
+import { ApiError } from "../lib/http.js";
+import { registrar } from "../lib/auditoria.js";
+import { reservarFolioOficio } from "../lib/folio.js";
+import { filtroOficiosSchema } from "../schemas/oficio.js";
+import { radicarOficioSchema } from "../schemas/radicar.js";
+import { listarOficios, obtenerOficio } from "../lib/query.js";
+import type { Database } from "../db/client.js";
+import { getDb } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import type { AppEnv } from "../types.js";
 
 const oficiosRouter = new Hono<AppEnv>();
 
@@ -139,7 +139,7 @@ oficiosRouter.post("/", async (c) => {
   return c.json({ oficio: oficioCreado }, 201);
 });
 
-import seguimientosRouter from "../routes/seguimientos";
+import seguimientosRouter from "../routes/seguimientos.js";
 
 // Mount sub‑router for seguimientos and lecturas
 oficiosRouter.route("/:id/seguimientos", seguimientosRouter);

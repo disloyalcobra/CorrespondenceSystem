@@ -1,5 +1,5 @@
-import type { Database } from "../db/client";
-import * as schema from "../db/schema";
+import type { Database } from "../db/client.js";
+import * as schema from "../db/schema.js";
 
 export interface DatosAuditoria {
   usuarioId?: number | null;

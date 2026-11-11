@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import { AppEnv } from "../types";
-import { requireRol } from "../lib/auth";
-import { Database } from "../db/client";
-import { getDb } from "../db/client";
-import * as schema from "../db/schema";
+import { AppEnv } from "../types.js";
+import { requireRol } from "../lib/auth.js";
+import { Database } from "../db/client.js";
+import { getDb } from "../db/client.js";
+import * as schema from "../db/schema.js";
 import { and, desc, eq, type SQL } from "drizzle-orm";
 
 const auditoriaRouter = new Hono<AppEnv>();

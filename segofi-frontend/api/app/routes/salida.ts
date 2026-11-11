@@ -1,13 +1,13 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
-import { requireUser, requireRol } from "../lib/auth";
-import { ApiError } from "../lib/http";
-import { registrar } from "../lib/auditoria";
-import { reservarFolioSalida } from "../lib/folio";
-import { getDb } from "../db/client";
-import type { Database } from "../db/client";
-import * as schema from "../db/schema";
-import type { AppEnv } from "../types";
+import { requireUser, requireRol } from "../lib/auth.js";
+import { ApiError } from "../lib/http.js";
+import { registrar } from "../lib/auditoria.js";
+import { reservarFolioSalida } from "../lib/folio.js";
+import { getDb } from "../db/client.js";
+import type { Database } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import type { AppEnv } from "../types.js";
 
 const salidasRouter = new Hono<AppEnv>();
 

@@ -1,15 +1,15 @@
 import { Hono } from "hono";
 import type { Context } from "hono";
 import { and, eq } from "drizzle-orm";
-import { requireUser } from "../lib/auth";
-import { ApiError } from "../lib/http";
-import { registrar } from "../lib/auditoria";
-import { getDb } from "../db/client";
-import type { Database } from "../db/client";
-import * as schema from "../db/schema";
-import { condicionAlcanceSQL } from "../lib/alcance";
-import { esUrlLocal, getBlobUploader, leerArchivoLocal } from "../lib/blob";
-import type { AppEnv } from "../types";
+import { requireUser } from "../lib/auth.js";
+import { ApiError } from "../lib/http.js";
+import { registrar } from "../lib/auditoria.js";
+import { getDb } from "../db/client.js";
+import type { Database } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import { condicionAlcanceSQL } from "../lib/alcance.js";
+import { esUrlLocal, getBlobUploader, leerArchivoLocal } from "../lib/blob.js";
+import type { AppEnv } from "../types.js";
 
 const TIPOS_MIME: Record<string, string> = {
     pdf: "application/pdf",

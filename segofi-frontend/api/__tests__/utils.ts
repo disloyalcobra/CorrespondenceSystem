@@ -1,9 +1,9 @@
 import { hash } from "bcryptjs";
 import { SignJWT } from "jose";
 import { randomUUID } from "node:crypto";
-import type { Database } from "../app/db/client";
-import * as schema from "../app/db/schema";
-import { getEnv } from "../app/env";
+import type { Database } from "../app/db/client.js";
+import * as schema from "../app/db/schema.js";
+import { getEnv } from "../app/env.js";
 
 /** Genera un JWT de sesión directamente con jose (sin necesitar Hono Context). */
 async function generarToken(usuarioId: number, rolId: number, departamentoId: number | null): Promise<string> {

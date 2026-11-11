@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "../app/db/schema";
-import { migrar } from "../app/db/migrate";
-import { seed } from "../app/db/seed";
-import { createApp } from "../index";
-import { hashPassword } from "../app/lib/auth";
-import { setBlobUploader, MockBlobUploader } from "../app/lib/blob";
+import * as schema from "../app/db/schema.js";
+import { migrar } from "../app/db/migrate.js";
+import { seed } from "../app/db/seed.js";
+import { createApp } from "../index.js";
+import { hashPassword } from "../app/lib/auth.js";
+import { setBlobUploader, MockBlobUploader } from "../app/lib/blob.js";
 
 describe("Task 12 — Adjuntos con Vercel Blob y control de alcance", () => {
     let client: ReturnType<typeof createClient>;

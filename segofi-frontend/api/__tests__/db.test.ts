@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { eq } from "drizzle-orm";
-import * as schema from "../app/db/schema";
-import { migrar } from "../app/db/migrate";
-import { seed } from "../app/db/seed";
+import * as schema from "../app/db/schema.js";
+import { migrar } from "../app/db/migrate.js";
+import { seed } from "../app/db/seed.js";
 
 describe("Base de datos: Schema, migraciones, seed e integridad", () => {
   let client: ReturnType<typeof createClient>;

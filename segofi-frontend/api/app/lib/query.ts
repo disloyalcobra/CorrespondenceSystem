@@ -1,9 +1,9 @@
 import { and, desc, eq, gte, inArray, like, lte, sql, type SQL } from "drizzle-orm";
-import type { Database } from "../db/client";
-import * as schema from "../db/schema";
-import type { UsuarioSchema } from "../schemas/auth";
-import type { FiltroOficios, OficioResumen, Paginado } from "../schemas/oficio";
-import { condicionAlcanceSQL } from "./alcance";
+import type { Database } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import type { UsuarioSchema } from "../schemas/auth.js";
+import type { FiltroOficios, OficioResumen, Paginado } from "../schemas/oficio.js";
+import { condicionAlcanceSQL } from "./alcance.js";
 
 export interface LineaTiempoItem {
   id: number;

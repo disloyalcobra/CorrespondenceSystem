@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
-import type { Database } from "../db/client";
-import * as schema from "../db/schema";
+import type { Database } from "../db/client.js";
+import * as schema from "../db/schema.js";
 
 export type TransactionOrDb =
   | Database

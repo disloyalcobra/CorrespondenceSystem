@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { put } from "@vercel/blob";
-import { getEnv } from "../env";
+import { getEnv } from "../env.js";
 
 export interface StorageUploader {
     subir(nombreArchivo: string, contenido: Buffer | Blob | ArrayBuffer): Promise<string>;

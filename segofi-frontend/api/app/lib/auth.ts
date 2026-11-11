@@ -3,13 +3,13 @@ import { SignJWT, jwtVerify } from "jose";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import type { Context, MiddlewareHandler } from "hono";
 import { eq } from "drizzle-orm";
-import { getEnv } from "../env";
-import { ApiError } from "./http";
-import type { Database } from "../db/client";
-import { getDb } from "../db/client";
-import * as schema from "../db/schema";
-import type { UsuarioSchema } from "../schemas/auth";
-import type { AppEnv } from "../types";
+import { getEnv } from "../env.js";
+import { ApiError } from "./http.js";
+import type { Database } from "../db/client.js";
+import { getDb } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import type { UsuarioSchema } from "../schemas/auth.js";
+import type { AppEnv } from "../types.js";
 
 export const NOMBRE_COOKIE_SESION = "sesion";
 

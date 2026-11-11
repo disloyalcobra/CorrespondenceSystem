@@ -1,13 +1,13 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { requireUser, requireRol } from "../lib/auth";
-import { ApiError } from "../lib/http";
-import { registrar } from "../lib/auditoria";
-import type { Database } from "../db/client";
-import { getDb } from "../db/client";
-import * as schema from "../db/schema";
-import type { AppEnv } from "../types";
+import { requireUser, requireRol } from "../lib/auth.js";
+import { ApiError } from "../lib/http.js";
+import { registrar } from "../lib/auditoria.js";
+import type { Database } from "../db/client.js";
+import { getDb } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import type { AppEnv } from "../types.js";
 
 const turnosRouter = new Hono<AppEnv>();
 

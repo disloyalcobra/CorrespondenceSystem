@@ -1,17 +1,17 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
-import { requireUser, requireRol, hashPassword, verifyPassword } from "../lib/auth";
-import { ApiError } from "../lib/http";
-import { registrar } from "../lib/auditoria";
-import { getDb } from "../db/client";
-import type { Database } from "../db/client";
-import * as schema from "../db/schema";
-import type { AppEnv } from "../types";
+import { requireUser, requireRol, hashPassword, verifyPassword } from "../lib/auth.js";
+import { ApiError } from "../lib/http.js";
+import { registrar } from "../lib/auditoria.js";
+import { getDb } from "../db/client.js";
+import type { Database } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import type { AppEnv } from "../types.js";
 import {
     crearUsuarioSchema,
     actualizarUsuarioSchema,
     cambiarPasswordSchema,
-} from "../schemas/usuario";
+} from "../schemas/usuario.js";
 
 const usuariosRouter = new Hono<AppEnv>();
 

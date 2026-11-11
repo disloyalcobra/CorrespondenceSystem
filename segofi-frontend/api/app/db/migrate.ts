@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { Database } from "./client";
+import type { Database } from "./client.js";
 
 export const MIGRATION_SQL = `
 CREATE TABLE IF NOT EXISTS \`roles\` (

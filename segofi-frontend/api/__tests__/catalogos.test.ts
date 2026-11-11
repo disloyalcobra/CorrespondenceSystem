@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import { eq } from "drizzle-orm";
-import * as schema from "../app/db/schema";
-import { migrar } from "../app/db/migrate";
-import { seed } from "../app/db/seed";
-import { createApp } from "../index";
-import { hashPassword } from "../app/lib/auth";
+import * as schema from "../app/db/schema.js";
+import { migrar } from "../app/db/migrate.js";
+import { seed } from "../app/db/seed.js";
+import { createApp } from "../index.js";
+import { hashPassword } from "../app/lib/auth.js";
 
 describe("Catálogos y administración de departamentos / tipos de documento", () => {
   let client: ReturnType<typeof createClient>;

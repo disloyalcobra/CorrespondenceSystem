@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import type { Database } from "./client";
-import * as schema from "./schema";
-import { getEnv } from "../env";
+import type { Database } from "./client.js";
+import * as schema from "./schema.js";
+import { getEnv } from "../env.js";
 
 export const ESTADOS_SEED = [
   { id: 1, nombre: "Pendiente", orden: 1 },

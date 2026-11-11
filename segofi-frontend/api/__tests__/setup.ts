@@ -1,9 +1,9 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "../app/db/schema";
-import { seed } from "../app/db/seed";
+import * as schema from "../app/db/schema.js";
+import { seed } from "../app/db/seed.js";
 import { sql } from "drizzle-orm";
-import type { Database } from "../app/db/client";
+import type { Database } from "../app/db/client.js";
 
 /**
  * Inicializa una base de datos en memoria para los tests.

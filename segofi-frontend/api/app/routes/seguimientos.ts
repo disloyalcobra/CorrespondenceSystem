@@ -1,15 +1,15 @@
 import { Hono } from "hono";
 import { and, eq, inArray } from "drizzle-orm";
-import { requireUser } from "../lib/auth";
-import { ApiError } from "../lib/http";
-import { registrar } from "../lib/auditoria";
-import { getDb } from "../db/client";
-import type { Database } from "../db/client";
-import * as schema from "../db/schema";
-import { seguimientoCreateSchema } from "../schemas/seguimiento";
-import { tieneAccesoTotal } from "../lib/alcance";
-import { condicionAlcanceSQL } from "../lib/alcance";
-import type { AppEnv } from "../types";
+import { requireUser } from "../lib/auth.js";
+import { ApiError } from "../lib/http.js";
+import { registrar } from "../lib/auditoria.js";
+import { getDb } from "../db/client.js";
+import type { Database } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import { seguimientoCreateSchema } from "../schemas/seguimiento.js";
+import { tieneAccesoTotal } from "../lib/alcance.js";
+import { condicionAlcanceSQL } from "../lib/alcance.js";
+import type { AppEnv } from "../types.js";
 
 const seguimientosRouter = new Hono<AppEnv>();
 

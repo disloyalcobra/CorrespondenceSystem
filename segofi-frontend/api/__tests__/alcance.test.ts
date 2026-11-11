@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "../app/db/schema";
-import { migrar } from "../app/db/migrate";
-import { seed } from "../app/db/seed";
-import { createApp } from "../index";
-import { hashPassword } from "../app/lib/auth";
+import * as schema from "../app/db/schema.js";
+import { migrar } from "../app/db/migrate.js";
+import { seed } from "../app/db/seed.js";
+import { createApp } from "../index.js";
+import { hashPassword } from "../app/lib/auth.js";
 
 describe("Alcance server-side, listado y detalle de oficios", () => {
   let client: ReturnType<typeof createClient>;

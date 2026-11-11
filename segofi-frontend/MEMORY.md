@@ -361,3 +361,23 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 - **Causa raíz 7 (departamentos que "no se borran"):** `DELETE /api/departamentos/:id` sí funcionaba (desactivación lógica, `activo=false`), pero la UI pintaba también los inactivos y sin el campo `activo`, así que la fila seguía ahí. Ahora los dados de baja no se listan y se informa cuántos hay.
 - **Causa raíz 8 (mapa de estados):** el frontend usaba 1 Recibido, 2 En seguimiento, 3 Turnado, 4 Respondido, 5 Cerrado, 6 Enviado, mientras el backend y `docs/logica-sistema.md` usan Pendiente(1), Turnado(2), En proceso(3), Respondido(4), Concluido(5), Vencido(6), Enviado(7). Por eso "Enviados" filtraba `estado_id === 6` (Vencido). Se unificó el catálogo en `src/Data/estados.ts`.
 - El servidor de desarrollo (`npm run dev:api`) se había detenido durante la sesión; se reinició y quedó escuchando en el puerto 3000 con la base de datos configurada.
+---
+
+## 2026-11-11 — Extensiones `.js` en imports del API para Vercel
+
+### Cambios realizados
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `api/**/*.ts` (44 archivos: `index.ts`, `app/routes/*`, `app/lib/*`, `app/db/*`, `app/schemas/*`, `scripts/*`, `__tests__/*`) | Todos los imports relativos llevan extensión `.js` explícita |
+| `server.ts` | Import de `./api/index.js` con extensión |
+
+### Resultado
+- **Typecheck API con `--module nodenext`:** ✅ 0 errores TS2835
+- **Build:** ✅ `npm run build` sin errores
+- **Tests:** ✅ 77 tests pasando (16 suites)
+
+### Notas técnicas
+- Vercel compila las funciones de `api/` como ESM (`"type": "module"`) con resolución `node16/nodenext`, que exige extensión en imports relativos (TS2835). Además de los errores de tipos, sin extensión Node falla en runtime con `ERR_MODULE_NOT_FOUND`.
+- Se usa `.js` (no `.ts`): TypeScript lo resuelve al `.ts` fuente y funciona igual con `tsx`, Vitest y la resolución `bundler` local.

@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { desc, eq } from "drizzle-orm";
-import { requireUser } from "../lib/auth";
-import { getDb } from "../db/client";
-import type { Database } from "../db/client";
-import * as schema from "../db/schema";
-import { condicionAlcanceSQL } from "../lib/alcance";
-import type { AppEnv } from "../types";
+import { requireUser } from "../lib/auth.js";
+import { getDb } from "../db/client.js";
+import type { Database } from "../db/client.js";
+import * as schema from "../db/schema.js";
+import { condicionAlcanceSQL } from "../lib/alcance.js";
+import type { AppEnv } from "../types.js";
 
 const reportesRouter = new Hono<AppEnv>();
 

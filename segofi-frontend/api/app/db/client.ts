@@ -1,7 +1,7 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "./schema";
-import { getEnv } from "../env";
+import * as schema from "./schema.js";
+import { getEnv } from "../env.js";
 
 let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
