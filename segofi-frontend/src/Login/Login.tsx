@@ -97,13 +97,6 @@ export default function Login() {
           >
             ¿Olvidaste tu contraseña?
           </Link>
-
-          <p className="text-center text-sm text-texto-secundario">
-            ¿No tienes cuenta?{" "}
-            <Link to="/registro" className="text-guinda hover:underline">
-              Crear cuenta
-            </Link>
-          </p>
         </form>
 
         <div className="mt-8 border-t border-slate-100 pt-6">
