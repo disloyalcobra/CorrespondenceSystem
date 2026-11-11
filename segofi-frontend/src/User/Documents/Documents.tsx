@@ -90,11 +90,21 @@ export default function Documents() {
         departamento_destino_inicial_id: Number(departamentoDestino),
       });
 
+      // El adjunto es opcional: si falla, el oficio ya quedó radicado y no debe perderse
+      let avisoAdjunto: string | null = null;
       if (archivo) {
-        await oficiosService.subirAdjunto(nuevoOficio.id, archivo);
+        try {
+          await oficiosService.subirAdjunto(nuevoOficio.id, archivo);
+        } catch (error) {
+          avisoAdjunto =
+            `El oficio se radicó con folio ${nuevoOficio.folio}, pero el archivo no se pudo adjuntar: ` +
+            (error instanceof Error ? error.message : "error desconocido");
+        }
       }
 
-      setAviso(`Oficio radicado exitosamente con folio: ${nuevoOficio.folio}`);
+      setAviso(
+        avisoAdjunto ?? `Oficio radicado exitosamente con folio: ${nuevoOficio.folio}`
+      );
       setTimeout(() => {
         navigate(`/ver-oficios/detalle?oficio=${encodeURIComponent(nuevoOficio.folio)}`);
       }, 1200);

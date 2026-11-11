@@ -28,7 +28,7 @@ auditoriaRouter.get("/", requireRol(2, 3), async (c) => {
     const basQuery = db
         .select({
             id: schema.auditoria.id,
-            usuarioiId: schema.auditoria.usuarioId,
+            usuarioId: schema.auditoria.usuarioId,
             usuarioNombre: schema.usuarios.nombre,
             usuarioEmail: schema.usuarios.email,
             accion: schema.auditoria.accion,

@@ -1,11 +1,14 @@
-export type EstadoOficio = "Recibido" | "Turnado" | "En seguimiento" | "Respondido" | "Cerrado" | "Enviado";
+import type { EstadoOficio } from "../Data/estados";
+
+export type { EstadoOficio };
 
 const estiloPorEstado: Record<EstadoOficio, string> = {
-  Recibido: "bg-blue-50 text-blue-700 border-blue-200",
+  Pendiente: "bg-blue-50 text-blue-700 border-blue-200",
   Turnado: "bg-dorado/10 text-dorado border-dorado/30",
-  "En seguimiento": "bg-amber-50 text-amber-700 border-amber-200",
+  "En proceso": "bg-amber-50 text-amber-700 border-amber-200",
   Respondido: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  Cerrado: "bg-gray-100 text-gray-600 border-gray-300",
+  Concluido: "bg-gray-100 text-gray-600 border-gray-300",
+  Vencido: "bg-red-50 text-red-700 border-red-200",
   Enviado: "bg-rose-50 text-rose-800 border-rose-200",
 };
 

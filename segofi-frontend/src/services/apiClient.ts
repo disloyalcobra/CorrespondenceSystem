@@ -55,7 +55,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
     //Si la respuesta no está en el rango 200-299 arrojamos un ApiError
     if (!response.ok) {
-        let mensaje = 'Error HTTP ${response.status}';
+        let mensaje = `Error HTTP ${response.status}`;
         let dataError: unknown = undefined;
         try {
             // Intentamos leer el mensaje JSON que programamos en el backend

@@ -1,14 +1,19 @@
-import { getDb } from "../app/db/client";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import * as schema from "../app/db/schema";
 import { seed } from "../app/db/seed";
 import { sql } from "drizzle-orm";
 import type { Database } from "../app/db/client";
 
 /**
- * Inicializa la base de datos in‑memory para los tests.
- * Crea todas las tablas necesarias mediante DDL y luego ejecuta el seed.
+ * Inicializa una base de datos en memoria para los tests.
+ * Nunca usa la base configurada (Turso) ni el archivo local: los tests
+ * se aislan por completo del entorno de desarrollo.
  */
 export async function initTestDb(): Promise<Database> {
-  const db = getDb();
+  const client = createClient({ url: ":memory:" });
+  await client.execute("PRAGMA foreign_keys = ON;");
+  const db = drizzle(client, { schema });
 
   // Crear todas las tablas del schema si no existen
   await db.run(sql`
@@ -138,7 +143,7 @@ export async function initTestDb(): Promise<Database> {
     )
   `);
 
-  // Poblar catálogos con datos de seed
+  // Poblar catalogos con datos de seed
   await seed(db);
 
   return db;

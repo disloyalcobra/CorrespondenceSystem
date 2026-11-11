@@ -57,9 +57,32 @@ Para sembrar los roles, estados y catálogos iniciales en Turso:
 npx tsx api/scripts/seed.ts
 ```
 
+> Si la base ya existe, verifica que sus columnas coincidan con `api/app/db/schema.ts`
+> (por ejemplo `auditoria.entidad_id`). Una diferencia de nombres provoca errores 500
+> al escribir en la bitácora.
+
 ---
 
-## 4. Despliegue en Vercel
+## 4. Desarrollo local
+
+```bash
+npm run dev      # Frontend (Vite) en http://localhost:5173
+npm run dev:api  # API (Hono) en http://localhost:3000
+```
+
+- El archivo `.env` de la raíz del proyecto se carga automáticamente: `tsx` y `vitest`
+  no lo leen por sí solos, por eso `api/app/env.ts` lo carga de forma explícita.
+  Las variables ya presentes en el entorno tienen precedencia.
+- Si `TURSO_DATABASE_URL` no está configurada, la API avisa por consola que está
+  usando la base local `file:local.db` y **los datos no se guardan en la base
+  de datos configurada**.
+- Sin `BLOB_READ_WRITE_TOKEN`, los adjuntos se guardan en `uploads/adjuntos/` y se
+  sirven por `GET /api/adjuntos/:id/archivo` (con el mismo control de alcance).
+  Con el token configurado se usa Vercel Blob.
+
+---
+
+## 5. Despliegue en Vercel
 
 Simplemente conecta tu repositorio de GitHub a Vercel o utiliza el CLI:
 ```bash

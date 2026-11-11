@@ -16,30 +16,33 @@ import { oficiosService } from "../../services/oficiosService";
 
 const FILTROS: ("Todos" | EstadoOficio)[] = [
   "Todos",
-  "Recibido",
+  "Pendiente",
   "Turnado",
-  "En seguimiento",
+  "En proceso",
   "Respondido",
-  "Cerrado",
+  "Concluido",
+  "Vencido",
   "Enviado",
 ];
 
 const ESTADO_MAP: Record<number, EstadoOficio> = {
-  1: "Recibido",
-  2: "En seguimiento",
-  3: "Turnado",
+  1: "Pendiente",
+  2: "Turnado",
+  3: "En proceso",
   4: "Respondido",
-  5: "Cerrado",
-  6: "Enviado",
+  5: "Concluido",
+  6: "Vencido",
+  7: "Enviado",
 };
 
 const ESTADO_INV_MAP: Record<string, number> = {
-  "Recibido": 1,
-  "En seguimiento": 2,
-  "Turnado": 3,
-  "Respondido": 4,
-  "Cerrado": 5,
-  "Enviado": 6,
+  Pendiente: 1,
+  Turnado: 2,
+  "En proceso": 3,
+  Respondido: 4,
+  Concluido: 5,
+  Vencido: 6,
+  Enviado: 7,
 };
 
 const columns: Column<Oficio>[] = [
@@ -133,7 +136,7 @@ const columns: Column<Oficio>[] = [
       );
     }
   },
-  { header: "Estado", render: (o) => <StatusBadge estado={ESTADO_MAP[o.estado_id] || "Recibido"} /> },
+  { header: "Estado", render: (o) => <StatusBadge estado={ESTADO_MAP[o.estado_id] || "Pendiente"} /> },
 ];
 
 export default function VerOficios() {

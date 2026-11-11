@@ -25,12 +25,13 @@ import { oficiosVisibles, tieneAccesoTotal } from "../../Guards/alcance";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 
 const ESTADO_MAP: Record<number, EstadoOficio> = {
-  1: "Recibido",
-  2: "En seguimiento",
-  3: "Turnado",
+  1: "Pendiente",
+  2: "Turnado",
+  3: "En proceso",
   4: "Respondido",
-  5: "Cerrado",
-  6: "Enviado",
+  5: "Concluido",
+  6: "Vencido",
+  7: "Enviado",
 };
 
 function ahora(): string {
@@ -84,7 +85,7 @@ export default function Seguimiento({ oficioSeleccionado = null, onCerrar }: Seg
     : [];
 
   const archivo = seleccionado?.adjuntos?.[0]?.nombre_archivo ?? "Sin archivo";
-  const estadoStr: EstadoOficio = seleccionado ? (ESTADO_MAP[seleccionado.estado_id] ?? "Recibido") : "Recibido";
+  const estadoStr: EstadoOficio = seleccionado ? (ESTADO_MAP[seleccionado.estado_id] ?? "Pendiente") : "Pendiente";
 
   return (
     <div className="flex flex-col gap-5">

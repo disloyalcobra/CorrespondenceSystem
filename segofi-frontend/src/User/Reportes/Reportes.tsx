@@ -8,7 +8,8 @@ import {
   AlertCircle,
   BarChart3,
   CalendarRange,
-  Building2
+  Building2,
+  Loader2
 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
@@ -17,7 +18,8 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 import Toast from "../../components/Toast";
 import DataTable, { type Column } from "../../components/DataTable";
-import { useOficios } from "../../Data/oficiosStore";
+import { useOficios } from "../../services/useOficios";
+import { useCatalogos } from "../../services/useCatalogos";
 import {
   evaluarOficio,
   formatoFecha,
@@ -26,7 +28,6 @@ import {
   type EvaluacionOficio,
 } from "../../Data/analisisOficios";
 import { exportarReporteExcel, exportarReportePdf } from "../../Data/exportUtils";
-import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
 
 type Periodo = "Semanal" | "Mensual" | "Anual";
 
@@ -34,7 +35,10 @@ function aISO(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-const columns: Column<EvaluacionOficio>[] = [
+function crearColumnas(
+  nombreDepartamento: (id: number) => string
+): Column<EvaluacionOficio>[] {
+  return [
   {
     header: "Número",
     render: (r) => {
@@ -56,7 +60,7 @@ const columns: Column<EvaluacionOficio>[] = [
   {
     header: "Asunto",
     render: (r) => {
-      const depto = DEPARTAMENTOS_DEMO.find(d => d.id === r.oficio.departamento_destino_inicial_id)?.nombre || "Desconocido";
+      const depto = nombreDepartamento(r.oficio.departamento_destino_inicial_id);
       return (
         <div className="flex flex-col gap-1 max-w-[240px]">
           <span className="font-semibold text-texto-dark text-[13.5px] leading-snug line-clamp-2">
@@ -80,7 +84,7 @@ const columns: Column<EvaluacionOficio>[] = [
   {
     header: "Área Destino",
     render: (r) => {
-      const depto = DEPARTAMENTOS_DEMO.find(d => d.id === r.oficio.departamento_destino_inicial_id)?.nombre || "Desconocido";
+      const depto = nombreDepartamento(r.oficio.departamento_destino_inicial_id);
       return (
         <div className="flex items-center gap-1.5 font-semibold text-texto-dark text-[12.5px] max-w-[180px]">
           <Building2 size={13} className="text-dorado shrink-0" />
@@ -138,7 +142,8 @@ const columns: Column<EvaluacionOficio>[] = [
       );
     },
   },
-];
+  ];
+}
 
 export default function Reportes() {
   const [periodo, setPeriodo] = useState<Periodo | null>(null);
@@ -147,7 +152,17 @@ export default function Reportes() {
   const [deptoFiltro, setDeptoFiltro] = useState<number | "todos">("todos");
   const [aviso, setAviso] = useState<string | null>(null);
 
-  const oficios = useOficios();
+  const { catalogos } = useCatalogos();
+  const { oficios, cargando, error, recargar } = useOficios({ pageSize: 200 });
+
+  const nombreDepartamento = (id: number) =>
+    catalogos.departamentos.find((d) => d.id === id)?.nombre || "Desconocido";
+
+  const columnas = useMemo(
+    () => crearColumnas(nombreDepartamento),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [catalogos.departamentos]
+  );
 
   const seleccionarPeriodo = (p: Periodo) => {
     const hoy = new Date();
@@ -303,7 +318,7 @@ export default function Reportes() {
                 className="h-10 px-3 rounded-md border border-borde bg-white text-sm text-texto-dark focus:outline-none focus:ring-2 focus:ring-guinda/20 focus:border-guinda transition-all"
               >
                 <option value="todos">Todos los departamentos</option>
-                {DEPARTAMENTOS_DEMO.map(d => (
+                {catalogos.departamentos.map(d => (
                   <option key={d.id} value={d.id}>{d.nombre}</option>
                 ))}
               </select>
@@ -327,11 +342,25 @@ export default function Reportes() {
           </span>
         </div>
 
-        <DataTable
-          columns={columns}
-          rows={filas}
-          emptyMessage="No hay registros en el rango seleccionado."
-        />
+        {cargando ? (
+          <div className="flex flex-col items-center justify-center py-12 text-texto-secundario">
+            <Loader2 className="w-8 h-8 animate-spin text-guinda mb-2" />
+            <span className="text-sm">Cargando oficios...</span>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <p className="text-sm text-red-600">{error}</p>
+            <Button variant="outline" onClick={recargar}>
+              Reintentar
+            </Button>
+          </div>
+        ) : (
+          <DataTable
+            columns={columnas}
+            rows={filas}
+            emptyMessage="No hay registros en el rango seleccionado."
+          />
+        )}
       </Card>
 
       <Toast mensaje={aviso} onClose={() => setAviso(null)} />

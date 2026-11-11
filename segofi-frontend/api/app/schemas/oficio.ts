@@ -8,7 +8,7 @@ export const filtroOficiosSchema = z.object({
   fecha_desde: z.string().optional(),
   fecha_hasta: z.string().optional(),
   page: z.coerce.number().min(1).default(1),
-  pageSize: z.coerce.number().min(1).max(100).default(20),
+  pageSize: z.coerce.number().min(1).max(1000).default(20),
 });
 
 export type FiltroOficios = z.infer<typeof filtroOficiosSchema>;

@@ -22,8 +22,7 @@ import Input from "../../components/Input";
 import Select from "../../components/Select";
 import StatusBadge, { type EstadoOficio } from "../../components/StatusBadge";
 import DocumentPreviewModal from "../../components/DocumentPreviewModal";
-import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
-import { type Oficio } from "../../Data/oficio";
+import { type Oficio, type AdjuntoOficio } from "../../Data/oficio";
 import { useAuth } from "../../Guards/useAuth";
 import {
   exportarFichaOficioPdf,
@@ -31,6 +30,7 @@ import {
   exportarSeguimientoExcel,
 } from "../../Data/exportUtils";
 import { oficiosService } from "../../services/oficiosService";
+import { useCatalogos } from "../../services/useCatalogos";
 
 type Pestaña = "ficha" | "timeline" | "adjuntos";
 type Accion = "turnar" | "nota" | "respuesta" | null;
@@ -38,13 +38,24 @@ type Accion = "turnar" | "nota" | "respuesta" | null;
 const ROLES_DIRECCION: number[] = [2, 3]; // Administrador, Directora
 const ROLES_DEPARTAMENTO: number[] = [2, 4]; // Administrador, JefeDepartamento
 
+/**
+ * URL para ver o descargar un adjunto. Los archivos guardados en el servidor local
+ * se sirven siempre por la API para que el control de alcance se aplique igual.
+ */
+function urlArchivoAdjunto(adjunto: AdjuntoOficio): string {
+  if (adjunto.archivo_url?.startsWith("local://")) {
+    return `/api/adjuntos/${adjunto.id}/archivo`;
+  }
+  return adjunto.archivo_url;
+}
+
 const ESTADO_MAP: Record<number, EstadoOficio> = {
-  1: "Recibido",
-  2: "En seguimiento",
-  3: "Turnado",
+  1: "Pendiente",
+  2: "Turnado",
+  3: "En proceso",
   4: "Respondido",
-  5: "Cerrado",
-  6: "Cerrado",
+  5: "Concluido",
+  6: "Vencido",
   7: "Enviado",
 };
 
@@ -59,23 +70,20 @@ export default function DetalleOficio() {
 
   const [pestana, setPestana] = useState<Pestaña>("ficha");
   const [accion, setAccion] = useState<Accion>(null);
-  const [departamentoId, setDepartamentoId] = useState(
-    String(DEPARTAMENTOS_DEMO[0]?.id ?? "")
-  );
+  const [departamentoId, setDepartamentoId] = useState("");
+  const { catalogos } = useCatalogos();
+  const departamentosActivos = catalogos.departamentos;
   const [texto, setTexto] = useState("");
   const [archivoRespuesta, setArchivoRespuesta] = useState<File | null>(null);
   const [aviso, setAviso] = useState("");
   const [adjuntoAbierto, setAdjuntoAbierto] = useState(false);
 
-  // Función para recargar el oficio desde la API
+  // Función para recargar el oficio (detalle) desde la API
   const recargar = () => {
-    if (!folio) return;
+    if (!oficio) return;
     oficiosService
-      .listar({ folio })
-      .then((res) => {
-        const encontrado = res.oficios.find((o) => o.folio === folio);
-        setOficio(encontrado ?? null);
-      })
+      .obtenerPorId(oficio.id)
+      .then((detalle) => setOficio(detalle))
       .catch((err) => {
         console.error("Error al recargar el oficio:", err);
       });
@@ -85,15 +93,20 @@ export default function DetalleOficio() {
     let montado = true;
     if (!folio) return;
 
+    // El detalle (no el listado) es el único que trae adjuntos, seguimientos y línea de tiempo
     oficiosService
       .listar({ folio })
       .then((res) => {
-        if (!montado) return;
         const encontrado = res.oficios.find((o) => o.folio === folio);
-        setOficio(encontrado ?? null);
-        if (encontrado) {
-          oficiosService.marcarLeido(encontrado.id).catch(() => {});
+        if (!encontrado) {
+          if (montado) setOficio(null);
+          return;
         }
+        return oficiosService.obtenerPorId(encontrado.id).then((detalle) => {
+          if (!montado) return;
+          setOficio(detalle);
+          oficiosService.marcarLeido(detalle.id).catch(() => {});
+        });
       })
       .catch((err) => {
         console.error("Error al cargar el oficio:", err);
@@ -143,7 +156,7 @@ export default function DetalleOficio() {
   );
 
   const departamentoNombre =
-    DEPARTAMENTOS_DEMO.find(
+    departamentosActivos.find(
       (d) => d.id === oficio.departamento_destino_inicial_id
     )?.nombre ?? "Desconocido";
   const estadoNombre = ESTADO_MAP[oficio.estado_id] || "Recibido";
@@ -360,7 +373,7 @@ export default function DetalleOficio() {
                   <div className="rounded-xl border border-borde bg-white p-4">
                     <p className="font-semibold">{evento.contenido}</p>
                     <p className="mt-1 text-sm text-texto-secundario">
-                      Usuario ID: {evento.usuario_id} · {evento.creado_en}
+                      {evento.usuario_nombre ?? `Usuario ID: ${evento.usuario_id}`} · {evento.creado_en}
                     </p>
                   </div>
                 </li>
@@ -399,7 +412,7 @@ export default function DetalleOficio() {
                   onClick={() => {
                     if (adjunto.archivo_url)
                       window.open(
-                        adjunto.archivo_url,
+                        urlArchivoAdjunto(adjunto),
                         "_blank",
                         "noopener,noreferrer"
                       );
@@ -411,7 +424,7 @@ export default function DetalleOficio() {
                 {adjunto.archivo_url && (
                   <a
                     className="inline-flex h-12 items-center gap-2 rounded-lg border border-guinda px-4 font-medium text-guinda"
-                    href={adjunto.archivo_url}
+                    href={urlArchivoAdjunto(adjunto)}
                     download={adjunto.nombre_archivo}
                   >
                     <Download size={17} />
@@ -495,7 +508,7 @@ export default function DetalleOficio() {
                     label="Departamento destino"
                     value={departamentoId}
                     onChange={(event) => setDepartamentoId(event.target.value)}
-                    options={DEPARTAMENTOS_DEMO.map((item) => ({
+                    options={departamentosActivos.map((item) => ({
                       value: String(item.id),
                       label: item.nombre,
                     }))}

@@ -108,7 +108,10 @@ function fechaDeAtencion(oficio: Oficio): Date | null {
 
 /** Misma regla de SistemaCorrespondencia: tiempo de respuesta y cumplimiento del término. */
 export function evaluarOficio(oficio: Oficio, hoy: Date = new Date()): EvaluacionOficio {
-  const recepcion = parseFecha(oficio.fecha_recepcion);
+  const recepcion =
+    parseFecha(oficio.fecha_recepcion) ??
+    parseFecha(oficio.creado_en) ??
+    parseFecha(oficio.fecha_documento);
   const termino = parseFecha(oficio.termino);
   const fechaRespuesta = fechaDeAtencion(oficio);
 

@@ -2,6 +2,7 @@ export interface EventoSeguimiento {
   id: number;
   oficio_id: number;
   usuario_id: number;
+  usuario_nombre?: string;
   tipo: string;
   contenido: string;
   creado_en: string;

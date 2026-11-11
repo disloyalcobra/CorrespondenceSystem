@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FileText,
@@ -16,11 +17,11 @@ import { useAuth } from "../../Guards/useAuth";
 import Card from "../../components/Card";
 import BarChart from "../../components/BarChart";
 import StatCard from "../../components/StatCard";
-import { useOficios } from "../../Data/oficiosStore";
-import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
-import { PERSONAS_DEMO } from "../../Data/personas";
+import { useOficios } from "../../services/useOficios";
+import { useCatalogos } from "../../services/useCatalogos";
+import { adminService } from "../../services/adminService";
 import { NOTIFICACIONES } from "../../Data/notificaciones";
-import { oficiosVisibles, notificacionesVisibles, tieneAccesoTotal } from "../../Guards/alcance";
+import { notificacionesVisibles, tieneAccesoTotal } from "../../Guards/alcance";
 
 const ADMIN_ROLES: number[] = [2, 3];
 
@@ -65,7 +66,9 @@ const COLORES_ESTADO = [
 
 export default function Dashboard() {
   const { usuario } = useAuth();
-  const oficiosStore = useOficios();
+  const { oficios: oficiosStore } = useOficios({ pageSize: 200 });
+  const { catalogos } = useCatalogos();
+  const [usuariosActivos, setUsuariosActivos] = useState(0);
 
   const accesos = ACCESOS.filter(
     (a) =>
@@ -75,8 +78,26 @@ export default function Dashboard() {
 
   const esAdmin = tieneAccesoTotal(usuario);
 
-  const misOficios = oficiosVisibles(usuario, oficiosStore);
+  // El alcance de los oficios lo aplica el servidor
+  const misOficios = oficiosStore;
   const misNotificaciones = notificacionesVisibles(usuario, NOTIFICACIONES);
+
+  useEffect(() => {
+    if (!esAdmin) return;
+    let montado = true;
+    adminService.usuarios
+      .listar()
+      .then((usuarios) => {
+        if (!montado) return;
+        setUsuariosActivos(usuarios.filter((u) => u.activo).length);
+      })
+      .catch(() => {
+        /* el contador queda en cero si no se puede cargar */
+      });
+    return () => {
+      montado = false;
+    };
+  }, [esAdmin]);
 
   const conteos = ESTADOS_ORDEN.map((estado, i) => ({
     label: estado.label,
@@ -111,7 +132,9 @@ export default function Dashboard() {
     day: "numeric",
   });
   
-  const deptoName = DEPARTAMENTOS_DEMO.find(d => d.id === usuario?.departamento_id)?.nombre || "Desconocido";
+  const deptoName =
+    catalogos.departamentos.find((d) => d.id === usuario?.departamento_id)?.nombre ||
+    "Desconocido";
 
   return (
     <div className="flex flex-col gap-5">
@@ -189,13 +212,13 @@ export default function Dashboard() {
             <>
               <StatCard
                 label="Departamentos"
-                value={DEPARTAMENTOS_DEMO.length}
+                value={catalogos.departamentos.length}
                 icon={Building2}
                 tone="blue"
               />
               <StatCard
                 label="Cuentas activas"
-                value={PERSONAS_DEMO.length}
+                value={usuariosActivos}
                 icon={Users}
                 tone="dorado"
               />

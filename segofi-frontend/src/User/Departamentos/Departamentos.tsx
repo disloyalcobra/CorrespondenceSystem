@@ -3,6 +3,7 @@ import { Building2, Plus, Search, Loader2 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
+import Select from "../../components/Select";
 import Button from "../../components/Button";
 import Toast from "../../components/Toast";
 import DataTable, { type Column } from "../../components/DataTable";
@@ -14,7 +15,18 @@ import {
 } from "../../Data/departamentos";
 import { adminService, type DepartamentoDTO } from "../../services";
 
-const DEPARTAMENTO_VACIO = { nombre: "", tipo: "", clave: "" };
+const DEPARTAMENTO_VACIO = { nombre: "", tipo: "INTERNO", clave: "" };
+
+// El backend (esquema y seed) solo admite los tipos INTERNO | EXTERNO
+const TIPOS_DEPARTAMENTO = [
+  { value: "INTERNO", label: "Interno" },
+  { value: "EXTERNO", label: "Externo" },
+];
+
+const ETIQUETA_TIPO: Record<string, string> = {
+  INTERNO: "Interno",
+  EXTERNO: "Externo",
+};
 
 export default function Departamentos() {
   const [departamentos, setDepartamentos] = useState<Departamento[]>(DEPARTAMENTOS_DEMO);
@@ -37,6 +49,7 @@ export default function Departamentos() {
             tipo: d.tipo,
             clave: `DEP-${d.id}`,
             descripcion: "",
+            activo: d.activo ?? true,
           }))
         );
       })
@@ -52,8 +65,12 @@ export default function Departamentos() {
     cargar();
   }, []);
 
-  const filas = departamentos.filter((d) =>
-    `${d.nombre} ${d.tipo}`.toLowerCase().includes(busqueda.toLowerCase())
+  // Los departamentos dados de baja (desactivación lógica) no se listan
+  const dadosDeBaja = departamentos.filter((d) => d.activo === false);
+  const filas = departamentos.filter(
+    (d) =>
+      d.activo !== false &&
+      `${d.nombre} ${d.tipo}`.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const abrirNuevo = () => {
@@ -64,7 +81,12 @@ export default function Departamentos() {
 
   const abrirEditar = (d: Departamento) => {
     setEditando(d);
-    setForm({ nombre: d.nombre, tipo: d.tipo, clave: d.clave });
+    setForm({
+      nombre: d.nombre,
+      // La base solo admite INTERNO | EXTERNO; si el registro trajera otro valor se usa INTERNO
+      tipo: TIPOS_DEPARTAMENTO.some((t) => t.value === d.tipo) ? d.tipo : "INTERNO",
+      clave: d.clave,
+    });
     setModalAbierto(true);
   };
 
@@ -79,7 +101,7 @@ export default function Departamentos() {
       } else {
         await adminService.departamentos.crear({
           nombre: form.nombre,
-          tipo: form.tipo || "Dirección",
+          tipo: form.tipo || "INTERNO",
         });
         setAviso(`Departamento "${form.nombre}" creado.`);
       }
@@ -94,7 +116,9 @@ export default function Departamentos() {
     if (!porEliminar) return;
     try {
       await adminService.departamentos.eliminar(porEliminar.id);
-      setAviso(`Departamento "${porEliminar.nombre}" eliminado.`);
+      setAviso(
+        `Departamento "${porEliminar.nombre}" dado de baja. Se conserva en la base de datos sin afectar su historial.`
+      );
       cargar();
       setPorEliminar(null);
     } catch (err) {
@@ -105,7 +129,7 @@ export default function Departamentos() {
   const columns: Column<Departamento>[] = [
     { header: "Clave", render: (d) => d.clave },
     { header: "Nombre", render: (d) => d.nombre },
-    { header: "Tipo", render: (d) => d.tipo },
+    { header: "Tipo", render: (d) => ETIQUETA_TIPO[d.tipo] ?? d.tipo },
   ];
 
   return (
@@ -146,6 +170,11 @@ export default function Departamentos() {
             emptyMessage="No se encontraron departamentos."
           />
         )}
+        {dadosDeBaja.length > 0 && (
+          <p className="mt-3 text-xs text-texto-secundario">
+            {dadosDeBaja.length} departamento(s) dado(s) de baja, no se muestran en la tabla.
+          </p>
+        )}
       </Card>
 
       <FormModal
@@ -162,9 +191,9 @@ export default function Departamentos() {
             onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             required
           />
-          <Input
-            label="Tipo de área"
-            placeholder="Ej.: Dirección, Subdirección, Jefatura"
+          <Select
+            label="Tipo de departamento"
+            options={TIPOS_DEPARTAMENTO}
             value={form.tipo}
             onChange={(e) => setForm({ ...form, tipo: e.target.value })}
             required
@@ -174,9 +203,9 @@ export default function Departamentos() {
 
       <ConfirmDialog
         open={Boolean(porEliminar)}
-        title="¿Eliminar departamento?"
-        description={`Esta acción desactivará "${porEliminar?.nombre}".`}
-        confirmLabel="Eliminar"
+        title="¿Dar de baja el departamento?"
+        description={`"${porEliminar?.nombre}" dejará de estar disponible y no se mostrará en la tabla. Su historial se conserva.`}
+        confirmLabel="Dar de baja"
         variant="danger"
         onCancel={() => setPorEliminar(null)}
         onConfirm={eliminar}

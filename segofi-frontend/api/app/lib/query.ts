@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, like, lte, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, like, lte, sql, type SQL } from "drizzle-orm";
 import type { Database } from "../db/client";
 import * as schema from "../db/schema";
 import type { UsuarioSchema } from "../schemas/auth";
@@ -11,6 +11,7 @@ export interface LineaTiempoItem {
   contenido?: string;
   departamentoId?: number;
   usuarioId: number;
+  usuarioNombre?: string;
   fecha: string;
   detalles?: unknown;
 }
@@ -149,6 +150,20 @@ export async function obtenerOficio(
       fecha: s.creadoEn,
     })),
   ].sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+
+  // Nombre del usuario que realizó cada acción
+  const usuarioIds = [...new Set(lineaTiempo.map((e) => e.usuarioId))];
+  if (usuarioIds.length > 0) {
+    const usuarios = await db
+      .select({ id: schema.usuarios.id, nombre: schema.usuarios.nombre })
+      .from(schema.usuarios)
+      .where(inArray(schema.usuarios.id, usuarioIds));
+
+    const nombres = new Map(usuarios.map((u) => [u.id, u.nombre]));
+    for (const evento of lineaTiempo) {
+      evento.usuarioNombre = nombres.get(evento.usuarioId) ?? `Usuario ID: ${evento.usuarioId}`;
+    }
+  }
 
   return {
     ...oficio,

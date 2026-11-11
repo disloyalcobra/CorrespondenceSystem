@@ -1,41 +1,48 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Send } from "lucide-react";
+import { Search, Send, Building2, Loader2 } from "lucide-react";
 import Card from "../../components/Card";
 import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
 import DataTable, { type Column } from "../../components/DataTable";
 import StatusBadge, { type EstadoOficio } from "../../components/StatusBadge";
 import { type Oficio } from "../../Data/oficio";
-import { useOficios } from "../../Data/oficiosStore";
-import { useAuth } from "../../Guards/useAuth";
-import { oficiosVisibles } from "../../Guards/alcance";
 import { TIPOS_DOCUMENTO } from "../../Data/tiposDocumento";
-import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
-import { Building2 } from "lucide-react";
+import { useCatalogos } from "../../services/useCatalogos";
+import { useOficios } from "../../services/useOficios";
 
 const ESTADO_MAP: Record<number, EstadoOficio> = {
-  1: "Recibido",
-  2: "En seguimiento",
-  3: "Turnado",
+  1: "Pendiente",
+  2: "Turnado",
+  3: "En proceso",
   4: "Respondido",
-  5: "Cerrado",
-  6: "Enviado",
+  5: "Concluido",
+  6: "Vencido",
+  7: "Enviado",
 };
 
+/** Estado "Enviado" del catálogo del backend (7). */
+const ESTADO_ENVIADO = 7;
+
 export default function Enviados() {
-  const { usuario } = useAuth();
   const navigate = useNavigate();
-  const oficios = useOficios();
   const [busqueda, setBusqueda] = useState("");
+  const { catalogos } = useCatalogos();
+  const { oficios, cargando } = useOficios({ pageSize: 100 });
+
+  const nombreDepartamento = (id: number) =>
+    catalogos.departamentos.find((d) => d.id === id)?.nombre || "Desconocido";
+
   const enviados = useMemo(
-    () => oficiosVisibles(usuario, oficios).filter((oficio) => oficio.estado_id === 6),
-    [usuario, oficios],
+    () => oficios.filter((oficio) => oficio.estado_id === ESTADO_ENVIADO),
+    [oficios]
   );
   const consulta = busqueda.trim().toLocaleLowerCase("es-MX");
   const filas = enviados.filter((oficio) => {
-    const depto = DEPARTAMENTOS_DEMO.find(d => d.id === oficio.departamento_destino_inicial_id)?.nombre || "";
-    return `${oficio.folio} ${oficio.asunto} ${depto}`.toLocaleLowerCase("es-MX").includes(consulta);
+    const depto = nombreDepartamento(oficio.departamento_destino_inicial_id);
+    return `${oficio.folio} ${oficio.asunto} ${depto}`
+      .toLocaleLowerCase("es-MX")
+      .includes(consulta);
   });
   const columnas: Column<Oficio>[] = [
     { 
@@ -91,7 +98,7 @@ export default function Enviados() {
     { 
       header: "Área Destino", 
       render: (o) => {
-        const depto = DEPARTAMENTOS_DEMO.find(d => d.id === o.departamento_destino_inicial_id)?.nombre || "Desconocido";
+        const depto = nombreDepartamento(o.departamento_destino_inicial_id);
         return (
           <div className="flex items-center gap-1.5 font-semibold text-texto-dark text-[12.5px]">
             <Building2 size={13} className="text-dorado shrink-0" />
@@ -100,13 +107,13 @@ export default function Enviados() {
         )
       } 
     },
-    { 
-      header: "Enviado", 
+    {
+      header: "Registrado",
       render: (o) => (
         <span className="text-[13px] text-slate-600 whitespace-nowrap">
           {o.creado_en.split("T")[0]}
         </span>
-      ) 
+      )
     },
     { header: "Estado", render: (o) => <StatusBadge estado={ESTADO_MAP[o.estado_id] || "Enviado"} /> },
   ];
@@ -128,12 +135,19 @@ export default function Enviados() {
             onChange={(event) => setBusqueda(event.target.value)}
           />
         </div>
-        <DataTable
-          columns={columnas}
-          rows={filas}
-          onView={(oficio) => navigate(`/ver-oficios/detalle?oficio=${encodeURIComponent(oficio.folio)}`)}
-          emptyMessage="No hay oficios enviados disponibles para tu alcance."
-        />
+        {cargando ? (
+          <div className="flex flex-col items-center justify-center py-12 text-texto-secundario">
+            <Loader2 className="w-8 h-8 animate-spin text-guinda mb-2" />
+            <span className="text-sm">Cargando oficios enviados...</span>
+          </div>
+        ) : (
+          <DataTable
+            columns={columnas}
+            rows={filas}
+            onView={(oficio) => navigate(`/ver-oficios/detalle?oficio=${encodeURIComponent(oficio.folio)}`)}
+            emptyMessage="No hay oficios enviados disponibles para tu alcance."
+          />
+        )}
       </Card>
     </div>
   );

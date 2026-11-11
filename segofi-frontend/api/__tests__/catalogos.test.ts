@@ -204,5 +204,24 @@ describe("Catálogos y administración de departamentos / tipos de documento", (
 
     expect(tipoDb.activo).toBe(false);
   });
+
+  it("POST /api/departamentos rechaza un tipo fuera del catalogo (INTERNO | EXTERNO)", async () => {
+    const res = await app.request("/api/departamentos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookieAdmin,
+      },
+      body: JSON.stringify({
+        nombre: "Direccion de Prueba",
+        tipo: "Direccion",
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBeTruthy();
+    expect(body.detalles.tipo._errors[0]).toContain("INTERNO");
+  });
 });
 

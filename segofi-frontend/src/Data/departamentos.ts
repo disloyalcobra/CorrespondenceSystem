@@ -3,6 +3,8 @@ export interface Departamento {
   nombre: string;
   tipo: string;
   clave: string;
+  /** false cuando el departamento fue dado de baja (desactivación lógica) */
+  activo?: boolean;
 }
 
 export const DEPARTAMENTOS_DEMO: Departamento[] = [

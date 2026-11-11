@@ -26,3 +26,6 @@ dist-ssr
 *.db-journal
 .env
 
+# Adjuntos guardados en disco cuando no hay almacenamiento remoto configurado
+uploads/
+

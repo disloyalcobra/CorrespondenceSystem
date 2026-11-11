@@ -271,3 +271,93 @@ Este archivo registra cada cambio significativo realizado al proyecto, con fecha
 - ...
 ```
 
+
+---
+
+## 2026-11-10 — Task 17: Corrección de los 3 errores reportados (usuarios, oficios y departamentos)
+
+### Cambios realizados
+
+#### Nuevos archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `api/__tests__/env.test.ts` | Tests de regresión de la carga de `.env` (parseo, precedencia de variables y uso en `getEnv()`) |
+| `api/__tests__/blob-local.test.ts` | Tests de los adjuntos con almacenamiento en disco (subida, descarga y control de alcance) |
+| `docs/plan-fix-errores-2026-11-10.md` | Diagnóstico con evidencia y plan de la corrección |
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `api/app/env.ts` | Carga explícita del `.env` (tsx y vitest no lo leen solos), con precedencia de las variables reales del entorno y aviso cuando cae en `file:local.db` |
+| `api/app/lib/blob.ts` | `LocalFileUploader` (disco) cuando no hay token de Blob, selección automática de uploader y helpers de URL local |
+| `api/app/routes/adjuntos.ts` | Adjuntos: error 503 claro si el almacenamiento falla, `GET /api/adjuntos/:id/archivo` (stream local / redirect remoto) y `/url` canónica |
+| `api/app/routes/departamentos.ts` | Alta, edición y baja de departamentos dentro de una transacción (antes dejaban filas huérfanas si fallaba la auditoría) |
+| `api/app/routes/usuarios.ts` | Corregidos los detalles de auditoría que se guardaban como texto literal (`'${creado.email}'`) |
+| `api/__tests__/setup.ts` | Los tests usan una base en memoria propia; ya no escriben ni en la base local ni en Turso |
+| `api/__tests__/catalogos.test.ts` | Test del contrato de `departamentos.tipo` (solo `INTERNO` / `EXTERNO`) |
+| `vitest.config.ts` | Aísla la base de datos de los tests (`:memory:`) y desactiva el token de Blob durante las pruebas |
+| `src/User/Departamentos/Departamentos.tsx` | El tipo de departamento pasa a ser un `Select` con `INTERNO`/`EXTERNO` (el backend solo admite esos valores) |
+| `src/User/Documents/Documents.tsx` | Si el adjunto falla, el oficio ya radicado no se pierde: se avisa con un mensaje específico |
+| `src/User/VerOficios/DetalleOficio.tsx` | Ver/descargar adjuntos por `/api/adjuntos/{id}/archivo` (respeta el control de alcance) |
+| `src/services/apiClient.ts` | Corregido `'Error HTTP ${response.status}'`, que se mostraba literal al usuario |
+| `.gitignore` | Ignora `uploads/` (adjuntos guardados en disco) |
+| `api/README.md` | Documenta el desarrollo local: carga de `.env`, aviso de base local y adjuntos en disco |
+
+### Resultado
+- **Lint:** ✅ 0 errores, 0 advertencias
+- **Build:** ✅ `npm run build` (tsc -b + vite build) sin errores
+- **Tests:** ✅ 74 tests pasando (15 suites)
+  - `env.test.ts` — 4 (nuevo)
+  - `blob-local.test.ts` — 5 (nuevo)
+  - resto de suites — 65
+
+### Notas técnicas
+- **Causa raíz 1 (los datos no llegaban a la base de datos):** ni `tsx watch` ni `vitest` cargan el archivo `.env`; `api/app/env.ts` caía en silencio al valor por defecto `file:local.db`, de modo que usuarios, oficios, departamentos y bitácora se escribían en un SQLite local mientras la base configurada (Turso) quedaba vacía. Ahora `getEnv()` carga el `.env` de forma explícita (sin sobrescribir variables reales) y avisa por consola cuando se usa la base local.
+- **Causa raíz 2 ("error interno" al crear un oficio):** la carga del archivo adjunto usaba siempre Vercel Blob; sin `BLOB_READ_WRITE_TOKEN`, `put()` lanzaba "No blob credentials found" y `handleApiError` lo degradaba a un 500 genérico (el oficio sí se creaba, pero la UI mostraba el error y no navegaba al detalle). Sin token, los adjuntos se guardan en `uploads/adjuntos/` y se sirven por la API.
+- **Causa raíz 3 (no se podía crear un departamento):** la UI enviaba texto libre en `tipo` ("Dirección") y el backend solo admite el catálogo `INTERNO` / `EXTERNO` (esquema, seed y `schemas/catalogos.ts`), por lo que respondía 400 "Datos de departamento inválidos".
+- **Causa raíz 4 (aparecida al verificar contra la base configurada):** la tabla `auditoria` de Turso tenía la columna `entidadId` en lugar de `entidad_id`, así que toda escritura de bitácora fallaba con 500 ("table auditoria has no column named entidad_id"). Se corrigió con `ALTER TABLE auditoria RENAME COLUMN` y se documentó la verificación de esquema en `api/README.md`.
+- El usuario `admin@sectur.gob.mx` de Turso tenía un hash de contraseña que no era un bcrypt válido (era imposible iniciar sesión); se regeneró con el `SEED_ADMIN_PASSWORD` declarado en `.env`.
+- La carpeta `api/` no está cubierta por `npm run build` (los `tsconfig` solo incluyen `src` y `vite.config.ts`); el tipado de la API se verificó aparte con `tsc --module esnext --moduleResolution bundler`.
+---
+
+## 2026-11-10 — Task 18: Pantallas con datos de demostración, detalle del oficio y baja de departamentos
+
+### Cambios realizados
+
+#### Nuevos archivos
+| Archivo | Descripción |
+|---------|-------------|
+| `src/Data/estados.ts` | Catálogo canónico de estados del oficio (el del backend) y utilidades `ESTADOS`, `ESTADOS_INVERSOS`, `ESTADOS_TERMINALES`, `etiquetaEstado` |
+| `src/services/useOficios.ts` | Hook que carga los oficios del usuario desde la API (sin respaldo de demostración) |
+| `src/services/useCatalogos.ts` | Hook que carga estados, tipos de documento, departamentos y roles desde `/api/catalogos` |
+| `api/__tests__/seguimiento-personas.test.ts` | Tests de `GET /api/seguimientos/personas` (401, agrupación por persona y alcance) |
+
+#### Archivos modificados
+| Archivo | Cambio |
+|---------|--------|
+| `api/app/lib/query.ts` | La línea de tiempo del detalle incluye `usuarioNombre` |
+| `api/app/routes/seguimientos.ts` | Nuevo router con `GET /api/seguimientos/personas`: acciones (notas, respuestas, turnos) agrupadas por persona sobre los oficios del alcance |
+| `api/index.ts` | Montaje del router de resumen en `/seguimientos` |
+| `src/services/oficiosService.ts` | DTO y mapper del detalle (`lineaTimeline` → `seguimiento`, `usuarioNombre`), método `seguimientoPorPersonas()` y se elimina el respaldo silencioso con `OFICIOS_DEMO` |
+| `src/components/StatusBadge.tsx` | Etiquetas alineadas con el catálogo del backend (Pendiente, Turnado, En proceso, Respondido, Concluido, Vencido, Enviado) |
+| `src/User/VerOficios/DetalleOficio.tsx` | Carga el **detalle** del oficio (`obtenerPorId`) para mostrar adjuntos, notas y línea de tiempo; recarga tras turnar/nota/respuesta/envío; muestra el nombre del usuario en la línea de tiempo; usa los departamentos del servidor |
+| `src/User/VerOficios/VerOficios.tsx` | Mapa y filtros de estados corregidos según el catálogo del backend |
+| `src/User/Departamentos/Departamentos.tsx` | Refleja la desactivación lógica: los dados de baja no se listan, se avisa cuántos hay y el aviso de baja explica que el registro se conserva |
+| `src/User/Reportes/Reportes.tsx` | Datos desde la API (antes `OFICIOS_DEMO`), departamentos del servidor, estados de carga y error |
+| `src/User/Enviados/Enviados.tsx` | Datos desde la API y filtro por estado real `Enviado` (7) en vez de 6 (`Vencido`) |
+| `src/User/SeguimientoPersonas/SeguimientoPersonas.tsx` | Consume `GET /api/seguimientos/personas`: personas reales con sus acciones sobre los oficios reales |
+| `src/User/Dashboard/Dashboard.tsx` | Conteos de oficios, departamentos y cuentas activas desde la API |
+| `src/Data/departamentos.ts` | El tipo `Departamento` incluye `activo` |
+
+### Resultado
+- **Lint:** ✅ 0 errores, 0 advertencias
+- **Build:** ✅ `npm run build` sin errores
+- **Tests:** ✅ 77 tests pasando (16 suites)
+  - `seguimiento-personas.test.ts` — 3 (nuevo)
+
+### Notas técnicas
+- **Causa raíz 5 (usuarios/folios de demostración):** `SeguimientoPersonas`, `Reportes` y `Enviados` leían `useOficios()` de `src/Data/oficiosStore.ts`, que devuelve `OFICIOS_DEMO`. Se conectaron al servicio de la API y `oficiosService.listar` ya no cae en silencio a los datos de demostración: si el servidor falla, la pantalla lo muestra.
+- **Causa raíz 6 (adjuntos, notas y línea de tiempo vacíos):** `DetalleOficio` cargaba el oficio con `listar()` (endpoint de lista, que solo devuelve las columnas de `oficios`) en lugar de `obtenerPorId()` (endpoint de detalle, que devuelve `adjuntos`, `lineaTiempo`, `lecturas` y `salida`). La página ahora usa el detalle y recarga el detalle tras cada acción.
+- **Causa raíz 7 (departamentos que "no se borran"):** `DELETE /api/departamentos/:id` sí funcionaba (desactivación lógica, `activo=false`), pero la UI pintaba también los inactivos y sin el campo `activo`, así que la fila seguía ahí. Ahora los dados de baja no se listan y se informa cuántos hay.
+- **Causa raíz 8 (mapa de estados):** el frontend usaba 1 Recibido, 2 En seguimiento, 3 Turnado, 4 Respondido, 5 Cerrado, 6 Enviado, mientras el backend y `docs/logica-sistema.md` usan Pendiente(1), Turnado(2), En proceso(3), Respondido(4), Concluido(5), Vencido(6), Enviado(7). Por eso "Enviados" filtraba `estado_id === 6` (Vencido). Se unificó el catálogo en `src/Data/estados.ts`.
+- El servidor de desarrollo (`npm run dev:api`) se había detenido durante la sesión; se reinició y quedó escuchando en el puerto 3000 con la base de datos configurada.

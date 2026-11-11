@@ -1,6 +1,5 @@
 import { apiClient } from "./apiClient";
 import type { Oficio, EventoSeguimiento, AdjuntoOficio } from "../Data/oficio";
-import { OFICIOS_DEMO } from "../Data/oficio";
 
 // 1. Interfaces que describen exactamente la forma en que el backend devuelve los datos (DTOs)
 export interface BackendOficioDTO {
@@ -31,6 +30,17 @@ export interface BackendOficioDTO {
         tipo: string;
         contenido: string;
         creadoEn: string;
+        usuarioNombre?: string;
+    }>;
+    /** Línea de tiempo que devuelve el detalle: turnos + seguimientos unificados */
+    lineaTiempo?: Array<{
+        id: number;
+        tipo: string;
+        contenido?: string;
+        departamentoId?: number;
+        usuarioId: number;
+        usuarioNombre?: string;
+        fecha: string;
     }>;
     adjuntos?: Array<{
         id: number;
@@ -40,6 +50,13 @@ export interface BackendOficioDTO {
         archivoUrl: string;
         creadoEn: string;
     }>;
+    /** Folio de salida (SAL) generado al enviar el oficio */
+    salida?: {
+        id: number;
+        folio: string;
+        oficioId: number;
+        enviadoEn: string;
+    } | null;
 }
 
 export interface PaginadoRespuesta<T> {
@@ -78,7 +95,31 @@ export interface RadicarOficioPayload {
 }
 
 // 4. Adaptador (Mapper): Convierte el DTO camelCase del backend al tipo Oficio snake_case que usa el UI
+interface EventoBackend {
+    id: number;
+    tipo: string;
+    contenido?: string;
+    departamentoId?: number;
+    usuarioId: number;
+    usuarioNombre?: string;
+    fecha: string;
+}
+
 export function mapDtoToOficio(dto: BackendOficioDTO): Oficio {
+    // La línea de tiempo del detalle (turnos + seguimientos) es la fuente de los eventos;
+    // el listado no los trae.
+    const eventos: EventoBackend[] = [
+        ...(dto.lineaTiempo ?? []),
+        ...(dto.seguimientos ?? []).map((s) => ({
+            id: s.id,
+            tipo: s.tipo,
+            contenido: s.contenido,
+            usuarioId: s.usuarioId,
+            usuarioNombre: s.usuarioNombre,
+            fecha: s.creadoEn,
+        })),
+    ];
+
     return {
         id: dto.id,
         folio: dto.folio,
@@ -94,14 +135,19 @@ export function mapDtoToOficio(dto: BackendOficioDTO): Oficio {
         departamento_destino_inicial_id: dto.departamentoDestinoInicialId,
         estado_id: dto.estadoId,
         creado_en: dto.creadoEn,
-        seguimiento: dto.seguimientos?.map((s): EventoSeguimiento => ({
+        seguimiento: eventos.map((s): EventoSeguimiento => ({
             id: s.id,
             oficio_id: dto.id,
             usuario_id: s.usuarioId,
+            usuario_nombre: s.usuarioNombre,
             tipo: s.tipo,
-            contenido: s.contenido,
-            creado_en: s.creadoEn,
-        })) ?? [],
+            contenido:
+                s.contenido ??
+                (s.departamentoId
+                    ? `Turno al departamento ${s.departamentoId}`
+                    : "Turno"),
+            creado_en: s.fecha,
+        })),
         adjuntos: dto.adjuntos?.map((a): AdjuntoOficio => ({
             id: a.id,
             entidad_tipo: a.entidadTipo,
@@ -113,25 +159,35 @@ export function mapDtoToOficio(dto: BackendOficioDTO): Oficio {
     };
 }
 
-// 5. El Servicio Principal de Oficios
+// 5. Acciones por persona sobre los oficios (resumen del servidor)
+export interface AccionPersona {
+    oficioId: number;
+    folio: string;
+    asunto: string;
+    tipo: string;
+    contenido: string;
+    fecha: string;
+    usuarioId: number;
+    usuarioNombre: string;
+}
+
+export interface PersonaSeguimiento {
+    usuarioId: number;
+    usuarioNombre: string;
+    acciones: AccionPersona[];
+}
+
+// 6. El Servicio Principal de Oficios
 export const oficiosService = {
     // A. Listar oficios con filtros y paginación desde el servidor
     async listar(filtros: FiltrosOficioParams = {}): Promise<{ oficios: Oficio[]; total: number }> {
-        try {
-            const res = await apiClient.get<PaginadoRespuesta<BackendOficioDTO>>("/oficios", {
-                params: filtros as Record<string, string | number | boolean | undefined>,
-            });
-            return {
-                oficios: res.data.map(mapDtoToOficio),
-                total: res.total,
-            };
-        } catch (error) {
-            console.warn("API no disponible, usando datos de demostración como respaldo:", error);
-            return {
-                oficios: OFICIOS_DEMO,
-                total: OFICIOS_DEMO.length,
-            };
-        }
+        const res = await apiClient.get<PaginadoRespuesta<BackendOficioDTO>>("/oficios", {
+            params: filtros as Record<string, string | number | boolean | undefined>,
+        });
+        return {
+            oficios: res.data.map(mapDtoToOficio),
+            total: res.total,
+        };
     },
 
     // B. Obtener detalle de un oficio por ID
@@ -187,5 +243,13 @@ export const oficiosService = {
             formData
         );
         return res.adjunto;
+    },
+
+    // I. Acciones registradas por persona sobre los oficios del alcance
+    async seguimientoPorPersonas(): Promise<PersonaSeguimiento[]> {
+        const res = await apiClient.get<{ personas: PersonaSeguimiento[] }>(
+            "/seguimientos/personas"
+        );
+        return res.personas;
     },
 };

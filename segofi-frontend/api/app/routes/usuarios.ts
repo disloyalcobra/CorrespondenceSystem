@@ -85,7 +85,7 @@ usuariosRouter.post("/", requireRol(2, 3), async (c) => {
             accion: "usuario_crear",
             entidad: "usuario",
             entidadId: creado.id,
-            detalle: 'Usuario creado: ${creado.email}',
+            detalle: `Usuario creado: ${creado.email}`,
         });
         return creado;
     });
@@ -142,7 +142,7 @@ usuariosRouter.put("/:id", requireRol(2, 3), async (c) => {
             accion,
             entidad: "usuario",
             entidadId: id,
-            detalle: 'Usuario actualizado: ${u.email}',
+            detalle: `Usuario actualizado: ${u.email}`,
         });
         return u;
     });
