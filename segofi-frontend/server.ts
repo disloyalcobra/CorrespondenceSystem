@@ -1,5 +1,5 @@
 import { serve } from "@hono/node-server";
-import { createApp } from "./index";
+import { createApp } from "./api/index";
 
 const app = createApp();
 const port = Number(process.env.PORT) || 3000;
@@ -10,6 +10,6 @@ serve(
     port,
   },
   (info) => {
-    console.log(`\n🚀 Servidor API de SegOfi escuchando en http://localhost:${info.port}/api\n`);
+    console.log(`\n🚀 Servidor API local de SegOfi escuchando en http://localhost:${info.port}/api\n`);
   }
 );
