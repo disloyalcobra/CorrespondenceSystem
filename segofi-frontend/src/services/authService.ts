@@ -14,19 +14,30 @@ export interface UsuarioSesion {
 export interface LoginResponse {
     usuario: UsuarioSesion;
 }
-// Objeto con las 3 operaciones esecenciales de autenticacion
+
+export interface CambiarPasswordPayload {
+    passwordActual: string;
+    nuevaPassword: string;
+}
+
+// Objeto con las operaciones esenciales de autenticación y cuenta
 export const authService = {
-    //inicia sesión: envía email y password al backend, el cual responde con el usuario y setea la cookie
+    // Inicia sesión: envía email y password al backend, el cual responde con el usuario y setea la cookie
     async login(email: string, password: string): Promise<UsuarioSesion> {
         const res = await apiClient.post<LoginResponse>("/auth/login", { email, password });
         return res.usuario;
     },
-    //Cierra sesión le pide al backend que limpie la cookie de sesión HTTP-only
+    // Cierra sesión: le pide al backend que limpie la cookie de sesión HTTP-only
     async logout(): Promise<void> {
         await apiClient.post("/auth/logout");
     },
+    // Consulta la sesión del usuario actual
     async me(): Promise<UsuarioSesion> {
         const res = await apiClient.get<LoginResponse>("/auth/me");
         return res.usuario;
+    },
+    // Cambia la contraseña del usuario en el backend validando la actual
+    async cambiarPassword(usuarioId: number, payload: CambiarPasswordPayload): Promise<{ ok: boolean; mensaje: string }> {
+        return apiClient.put(`/usuarios/${usuarioId}/password`, payload);
     },
 };
